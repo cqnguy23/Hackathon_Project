@@ -3,19 +3,32 @@ const Schema = mongoose.Schema;
 
 const petitionSchema = Schema(
   {
-    userId: Number,
+    owner: {
+      ref: "User",
+      type: Schema.ObjectId,
+    },
     participants: { type: Schema.ObjectId, ref: "Participant" },
     loanAmount: Number,
-    status: ["pending", "inProgress", "completed"],
-    actionType: ["receive", "provide", "deliver", "borrow"],
-    startCoords: {
+    status: {
+      type: String,
+      enum: {
+        values: ["pending", "inProgress", "complete"],
+      },
+    },
+    type: {
+      type: String,
+      enum: {
+        values: ["receive", "provide", "deliver", "borrow"],
+      },
+    },
+    startLoc: {
       lat: Number,
       long: Number,
       address: String,
       city: String,
       country: String,
     },
-    endCoords: {
+    endLoc: {
       lat: Number,
       long: Number,
       address: String,

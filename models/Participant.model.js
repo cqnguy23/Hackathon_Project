@@ -2,9 +2,13 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const participantSchema = Schema({
-  userId: Number,
-  actionType: ["receiver", "provider", "driver", "loaner", "borrower"],
-  endCoords: {
+  owner: {
+    ref: "User",
+    type: Schema.ObjectId,
+    required: true,
+  },
+  type: ["receiver", "provider", "driver", "loaner", "borrower"],
+  endLoc: {
     lat: Number,
     long: Number,
     address: String,
