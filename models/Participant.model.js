@@ -7,6 +7,11 @@ const participantSchema = Schema({
     type: Schema.ObjectId,
     required: true,
   },
+  petition: {
+    ref: "Petition",
+    type: Schema.ObjectId,
+    required: true,
+  },
   type: {
     type: String,
     enum: {
