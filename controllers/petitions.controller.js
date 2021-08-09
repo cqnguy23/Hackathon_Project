@@ -75,7 +75,7 @@ petitionsController.update = catchAsync(async (req, res) => {
       "Petition updated sucessfully"
     );
   } else {
-    return next(new AppError(400, "Required loan amount!"));
+    return next(new AppError(401, "Required loan amount!"));
   }
 });
 

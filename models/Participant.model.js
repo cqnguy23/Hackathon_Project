@@ -7,7 +7,12 @@ const participantSchema = Schema({
     type: Schema.ObjectId,
     required: true,
   },
-  type: ["receiver", "provider", "driver", "loaner", "borrower"],
+  type: {
+    type: String,
+    enum: {
+      values: ["receiver", "provider", "driver", "loaner", "borrower"],
+    },
+  },
   endLoc: {
     lat: Number,
     long: Number,
