@@ -4,7 +4,6 @@ Help people get & receive help
 
 ## Dependencies
 
-
 ## Models
 
 - Users
@@ -25,16 +24,16 @@ Petition.schema = {
   userId: Number,
   participants: [],
   loanAmount: Number,
-  status: ['pending', 'processing', 'completed'],
+  status: ['pending', 'processing', 'complete'],
   type: ['receive', 'provide', 'deliver', 'borrow'],
-  startCoords: {
+  startLoc: {
     lat: Number,
     long: Number,
     address: String,
     city: String,
     country: String,
   },
-  endCoords: {
+  endLoc: {
     lat: Number,
     long: Number,
     address: String,
@@ -48,7 +47,7 @@ Participant.schema = {
   payAmount: Number,
   petitionId: Number,
   type: ['receiver', 'provider', 'driver', 'loaner', 'borrower', 'payer',],
-  endCoords: {
+  endLoc: {
     lat: Number,
     long: Number,
     address: String,
