@@ -1,5 +1,4 @@
 "use strict";
-const crypto = require("crypto");
 const utilsHelper = {};
 
 // Manage how we respond to clients here when needed
@@ -12,8 +11,18 @@ utilsHelper.sendResponse = (res, status, success, data, errors, message) => {
   return res.status(status).json(response);
 };
 
+// Catch every error here
 utilsHelper.catchAsync = (func) => (req, res, next) =>
   func(req, res, next).catch((err) => next(err));
+
+// Use an array here to filter for admissableFields on each resource
+utilsHelper.filterFields = (obj, allows) => {
+  const result = {};
+  for (const field of allows) {
+    result[field] = field in obj ? obj[field] : "";
+  }
+  return result;
+};
 
 class AppError extends Error {
   constructor(statusCode, message, errorType) {
@@ -26,22 +35,6 @@ class AppError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 }
-
-utilsHelper.generateRandomHexString = (len) => {
-  return crypto
-    .randomBytes(Math.ceil(len / 2))
-    .toString("hex") // convert to hexadecimal format
-    .slice(0, len)
-    .toUpperCase(); // return required number of characters
-};
-
-utilsHelper.filterFields = (obj, allows) => {
-  const result = {};
-  for (const field of allows) {
-    result[field] = field in obj ? obj[field] : "";
-  }
-  return result;
-};
 
 utilsHelper.AppError = AppError;
 module.exports = utilsHelper;
