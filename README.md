@@ -11,9 +11,6 @@ Help people get & receive help
 - Petitions
 - Participants
 
-
-
-
 ### Notes
 
 ```js
