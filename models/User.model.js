@@ -3,10 +3,13 @@ const Schema = mongoose.Schema;
 
 const userSchema = Schema(
   {
+    userId: Number,
+    petitions: { type: Schema.ObjectId, ref: "Petition" },
+    participants: { type: Schema.ObjectId, ref: "Participant" },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const User = mongoose.model("User", userSchema);
