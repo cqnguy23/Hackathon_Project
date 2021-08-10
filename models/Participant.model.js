@@ -5,12 +5,10 @@ const participantSchema = Schema({
   owner: {
     ref: "User",
     type: Schema.ObjectId,
-    required: true,
   },
   petition: {
     ref: "Petition",
     type: Schema.ObjectId,
-    required: true,
   },
   type: {
     type: String,

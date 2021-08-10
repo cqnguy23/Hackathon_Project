@@ -23,6 +23,7 @@ const petitionSchema = Schema(
       ref: "User",
       type: Schema.ObjectId,
     },
+    items: [{ type: String, quantity: Number, kg: Number }],
     startLoc: {
       lat: Number,
       lng: Number,
@@ -41,7 +42,7 @@ const petitionSchema = Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Petition = mongoose.model("Petition", petitionSchema);
