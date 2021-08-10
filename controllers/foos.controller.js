@@ -1,4 +1,8 @@
 const Foo = require("../models/Foo.model");
+const User = require("../models/User.model");
+const Petition = require("../models/Petition.model");
+const Participant = require("../models/Participant.model");
+// const Items = require("../models/Items.model");
 
 const {
   AppError,
@@ -8,25 +12,60 @@ const {
 
 const foosController = {};
 
-// CREATE a foo
-// - Allows a client to create a new foo.
-// - Should only allow admissable parameters for a new instance of a foo.
 foosController.create = catchAsync(async (req, res) => {});
-
-// READ a foo
-// - Allows a client to retrieve a list of foos.
-// - Should handle query params such as page, limit, sorting, search, etc.
-// - Often produces related data. The comments of a post for a example.
 foosController.read = catchAsync(async (req, res, next) => {});
-
-// UPDATE FOO
-// - Allows a client to update a previous instance of a foo.
-// - Should only allow admissable parameters to be updated by the client.
 foosController.update = catchAsync(async (req, res) => {});
-
-// DESTROY FOO
-// - Allows a client to destroy an instance of a foo.
-// - Should authenticate/authorize that the client can destroy the foo.
 foosController.destroy = catchAsync(async (req, res) => {});
+
+const users = [
+  { fName: "Loi", lName: "Tran" },
+  { fName: "Tam", lName: "Nguyen" },
+  { fName: "Tan", lName: "Nguyen" },
+  { fName: "Trinh", lName: "Dao" },
+  { fName: "Trang", lName: "Tran" },
+  { fName: "Thuy", lName: "Le" },
+];
+
+const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
+
+const bounds = {
+  n: [10.893521174902164, 106.67816465354217],
+  e: [10.792754862735382, 106.79024066647305],
+  s: [10.703829032149068, 106.6814819139672],
+  w: [10.793220373965548, 106.60020903355434],
+};
+
+function randomnum(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+foosController.seed = catchAsync(async (req, res) => {
+  for (const u of users) {
+    let owner = await User.create({ firstName: u.fName, lastName: u.lName });
+    await owner.save();
+
+    let pTimes = 50;
+    for (let pIdx = 0; pIdx < pTimes; pIdx++) {
+      let endLoc = null
+      const type = requestTypes[Math.floor(Math.random() * requestTypes.length)];
+
+      if (type === 'receive') {
+        endLoc = {
+          lat: randomnum(bounds.n[0], bounds.s[0]),
+          lng: randomnum(bounds.w[1], bounds.e[1]),
+        };
+      }
+      const p = await Petition.create({
+        owner,
+        status: "requested",
+        type,
+        endLoc,
+      });
+      await p.save();
+    }
+  }
+
+  res.send({ foo: "bar" });
+});
 
 module.exports = foosController;

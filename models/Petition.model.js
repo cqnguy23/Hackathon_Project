@@ -3,7 +3,10 @@ const Schema = mongoose.Schema;
 
 const petitionSchema = Schema(
   {
-    loanAmount: Number,
+    loanAmount: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: {
@@ -22,14 +25,14 @@ const petitionSchema = Schema(
     },
     startLoc: {
       lat: Number,
-      long: Number,
+      lng: Number,
       address: String,
       city: String,
       country: String,
     },
     endLoc: {
       lat: Number,
-      long: Number,
+      lng: Number,
       address: String,
       city: String,
       country: String,

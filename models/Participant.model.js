@@ -20,7 +20,7 @@ const participantSchema = Schema({
   },
   endLoc: {
     lat: Number,
-    long: Number,
+    lng: Number,
     address: String,
     city: String,
     country: String,
