@@ -23,7 +23,7 @@ const petitionSchema = Schema(
       ref: "User",
       type: Schema.ObjectId,
     },
-    items: [{ type: String, quantity: Number, kg: Number }],
+    items: [{ ref: "Item", type: Schema.ObjectId }],
     startLoc: {
       lat: Number,
       lng: Number,
@@ -39,6 +39,7 @@ const petitionSchema = Schema(
       country: String,
     },
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
+    items: [{ type: Schema.ObjectId, ref: "Item" }],
   },
   {
     timestamps: true,
