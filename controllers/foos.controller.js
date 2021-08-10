@@ -78,18 +78,21 @@ foosController.seed = catchAsync(async (req, res) => {
       });
       await p.save();
       //create some items if appropriate
-      const item = await Item.create({
+      let item = await Item.create({
         petition: p,
-        weight: 3,
+        weight: Math.floor(randomnum(1, 10)),
         type: "food",
       });
-      item = await Item.create({
+      await item.save();
+      await p.items.push(item);
+      await p.save();
+      let item2 = await Item.create({
         petition: p,
-        weight: 5,
+        weight: Math.floor(randomnum(1, 10)),
         type: "clothing",
       });
-      await item.save();
-      p.items.push(item);
+      await item2.save();
+      await p.items.push(item2);
       await p.save();
     }
   }
