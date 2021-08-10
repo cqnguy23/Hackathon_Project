@@ -6,9 +6,9 @@ const {
   sendResponse,
 } = require("../helpers/utils.helper");
 const utilsHelper = require("../helpers/utils.helper");
+const User = require("../models/User.model");
 
 const petitionsController = {};
-
 // CREATE a petition
 // - Allows a client to create a new petition.
 // - Should only allow admissable parameters for a new instance of a petition.
@@ -18,21 +18,23 @@ petitionsController.create = catchAsync(async (req, res, next) => {
   if (!type || !userId) {
     return next(new AppError(400, "Required fields are missing!"));
   }
+  let owner = await User.findById(userId);
+  if (!owner) {
+    return next(new AppError(400, "Unable to locate owner"));
+  }
   if (type == "borrow" || type == "provide") {
     if (!loanAmount) {
       return next(new AppError(400, "Required loan amount!"));
     }
-  }
-  if (type == "borrow" || type == "provide") {
     petition = await Petition.create({
-      userId,
+      owner,
       loanAmount,
       type,
       status: "pending",
     });
   } else {
     petition = await Petition.create({
-      userId,
+      owner,
       type,
       status: "pending",
     });
@@ -51,14 +53,23 @@ petitionsController.create = catchAsync(async (req, res, next) => {
 // READ a petition
 // - Allows a client to retrieve a list of petitions from the use.
 // - Often produces related data. The comments of a post for a example.
-petitionsController.read = catchAsync(async (req, res) => {});
+petitionsController.read = catchAsync(async (req, res) => {
+  let petitions = await Petition.find();
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { petitions },
+    null,
+    "Get petitions sucessfully"
+  );
+});
 
 // UPDATE FOO
 // - Allows a client to update a previous instance of a petition.
 // - Should only allow admissable parameters to be updated by the client.
 petitionsController.update = catchAsync(async (req, res) => {
   let petitionId = req.params.id;
-  console.log(petitionId);
   let { loanAmount } = req.body;
   if (loanAmount) {
     let petition = await Petition.findByIdAndUpdate(
