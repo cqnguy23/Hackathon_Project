@@ -105,6 +105,7 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
       return item;
     })
   );
+
   /* await Promise.all(jobs.map( async (job) =>  {
             return { ...job, companyName: await getCompanyName(job.companyId)}
         })) */
@@ -118,6 +119,40 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
   );
 });
 
+petitionsController.getSinglePetition = catchAsync(async (req, res, next) => {
+  let petitionId = req.params.id;
+  let petition = await Petition.findById(petitionId);
+
+  if (!petition) {
+    return next(new AppError(401, "Petition not found!"));
+  }
+  let itemsId = petition.items;
+  let items = await Promise.all(
+    itemsId.map(async (itemId) => {
+      const item = await Item.findById(itemId);
+      return item;
+    })
+  );
+
+  let isComplete = items.every((item) => item.status == "complete");
+  if (isComplete) {
+    petition = await Petition.findByIdAndUpdate(
+      petitionId,
+      {
+        status: "complete",
+      },
+      { new: true }
+    );
+  }
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { petition },
+    null,
+    "Retrieve single petition sucessfully"
+  );
+});
 // DESTROY FOO
 // - Allows a client to destroy an instance of a petition.
 // - Should authenticate/authorize that the client can destroy the foo.
