@@ -24,6 +24,12 @@ const users = [
   { fName: "Trinh", lName: "Dao" },
   { fName: "Trang", lName: "Tran" },
   { fName: "Thuy", lName: "Le" },
+  { fName: "Chuong", lName: "Lee" },
+  { fName: "Charles", lName: "Lee" },
+  { fName: "Tan", lName: "Bui" },
+  { fName: "Tuan", lName: "Hoang" },
+  { fName: "Ben", lName: "Dao" },
+  { fName: "Peter", lName: "Nguyen" },
 ];
 
 const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
