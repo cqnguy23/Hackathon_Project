@@ -23,7 +23,7 @@ const petitionSchema = Schema(
       ref: "User",
       type: Schema.ObjectId,
     },
-    items: [{ type: String, quantity: Number, kg: Number }],
+    items: [{ ref: "Item", type: Schema.ObjectId }],
     startLoc: {
       lat: Number,
       lng: Number,

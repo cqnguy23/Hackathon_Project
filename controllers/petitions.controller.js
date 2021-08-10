@@ -7,6 +7,7 @@ const {
 } = require("../helpers/utils.helper");
 const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/User.model");
+const Item = require("../models/Item.model");
 
 const petitionsController = {};
 // CREATE a petition
@@ -88,6 +89,34 @@ petitionsController.update = catchAsync(async (req, res) => {
   } else {
     return next(new AppError(401, "Required loan amount!"));
   }
+});
+
+petitionsController.getItems = catchAsync(async (req, res, next) => {
+  let petitionId = req.params.id;
+  let petition = await Petition.findById(petitionId);
+
+  if (!petition) {
+    return next(new AppError(401, "Petition not found!"));
+  }
+  let itemsId = petition.items;
+  let items = await Promise.all(
+    itemsId.map(async (itemId) => {
+      const item = await Item.findById(itemId);
+      console.log(item);
+      return item;
+    })
+  );
+  /* await Promise.all(jobs.map( async (job) =>  {
+            return { ...job, companyName: await getCompanyName(job.companyId)}
+        })) */
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { items },
+    null,
+    "Retrieve items sucessfully"
+  );
 });
 
 // DESTROY FOO

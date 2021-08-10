@@ -9,6 +9,7 @@ const {
   catchAsync,
   sendResponse,
 } = require("../helpers/utils.helper");
+const Item = require("../models/Item.model");
 
 const foosController = {};
 
@@ -50,7 +51,7 @@ foosController.seed = catchAsync(async (req, res) => {
     let owner = await User.create({ firstName: u.fName, lastName: u.lName });
     await owner.save();
 
-    let pTimes = 50;
+    let pTimes = 10;
     for (let pIdx = 0; pIdx < pTimes; pIdx++) {
       let endLoc = null;
       const type =
@@ -70,6 +71,19 @@ foosController.seed = catchAsync(async (req, res) => {
       });
       await p.save();
       //create some items if appropriate
+      const item = await Item.create({
+        petition: p,
+        weight: 3,
+        type: "food",
+      });
+      item = await Item.create({
+        petition: p,
+        weight: 5,
+        type: "clothing",
+      });
+      await item.save();
+      p.items.push(item);
+      await p.save();
     }
   }
 

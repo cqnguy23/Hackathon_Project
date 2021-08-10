@@ -13,4 +13,6 @@ router.use("/petitions", petitionsApi);
 const participantsApi = require("./participants.api");
 router.use("/participants", participantsApi);
 
+const itemsApi = require("./items.api");
+router.use("/items", itemsApi);
 module.exports = router;
