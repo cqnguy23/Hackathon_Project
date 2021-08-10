@@ -7,5 +7,6 @@ router.post("/", foosController.create);
 router.get("/", foosController.read);
 router.put("/:id", foosController.update);
 router.delete("/:id", foosController.destroy);
+router.get("/seed", foosController.seed);
 
 module.exports = router;

@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const foosRouter = require("./foos.api");
-router.use("/foos", foosRouter);
+const foosApi = require("./foos.api");
+router.use("/foos", foosApi);
 
-const usersRouter = require("./users.api");
-router.use("/users", usersRouter);
+const usersApi = require("./users.api");
+router.use("/users", usersApi);
 
-const petitionsRouter = require("./petitions.api");
-router.use("/petitions", petitionsRouter);
+const petitionsApi = require("./petitions.api");
+router.use("/petitions", petitionsApi);
 
-const participants = require("./participants.api");
-router.use("/participants", participants);
+const participantsApi = require("./participants.api");
+router.use("/participants", participantsApi);
 
 module.exports = router;
