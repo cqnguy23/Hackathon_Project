@@ -63,37 +63,64 @@ foosController.seed = catchAsync(async (req, res) => {
           lat: randomnum(bounds.n[0], bounds.s[0]),
           lng: randomnum(bounds.w[1], bounds.e[1]),
         };
+        const p = await Petition.create({
+          owner,
+          type,
+          endLoc,
+          startLoc,
+          status: "requested",
+        });
+        await p.save();
+        //create some items if appropriate
+        let item = await Item.create({
+          petition: p,
+          weight: Math.floor(randomnum(1, 10)),
+          type: "food",
+          status: "pending",
+        });
+        await item.save();
+        await p.items.push(item);
+        await p.save();
+        let item2 = await Item.create({
+          petition: p,
+          weight: Math.floor(randomnum(1, 10)),
+          type: "clothing",
+          status: "pending",
+        });
+        await item2.save();
+        await p.items.push(item2);
+        await p.save();
       } else if (type === "provide") {
         startLoc = {
           lat: randomnum(bounds.n[0], bounds.s[0]),
           lng: randomnum(bounds.w[1], bounds.e[1]),
         };
+        const p = await Petition.create({
+          owner,
+          type,
+          endLoc,
+          startLoc,
+          status: "requested",
+        });
+        await p.save();
+        //create some items if appropriate
+        let item = await Item.create({
+          petition: p,
+          weight: Math.floor(randomnum(1, 10)),
+          type: "food",
+        });
+        await item.save();
+        await p.items.push(item);
+        await p.save();
+        let item2 = await Item.create({
+          petition: p,
+          weight: Math.floor(randomnum(1, 10)),
+          type: "clothing",
+        });
+        await item2.save();
+        await p.items.push(item2);
+        await p.save();
       }
-      const p = await Petition.create({
-        owner,
-        type,
-        endLoc,
-        startLoc,
-        status: "requested",
-      });
-      await p.save();
-      //create some items if appropriate
-      let item = await Item.create({
-        petition: p,
-        weight: Math.floor(randomnum(1, 10)),
-        type: "food",
-      });
-      await item.save();
-      await p.items.push(item);
-      await p.save();
-      let item2 = await Item.create({
-        petition: p,
-        weight: Math.floor(randomnum(1, 10)),
-        type: "clothing",
-      });
-      await item2.save();
-      await p.items.push(item2);
-      await p.save();
     }
   }
 

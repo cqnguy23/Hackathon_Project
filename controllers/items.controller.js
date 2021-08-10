@@ -15,9 +15,10 @@ itemsController.create = catchAsync(async (req, res, next) => {
 
   let item = await Item.create({
     petition,
+    status: "pending",
     quantity,
-    type,
     weight,
+    type,
   });
   await item.save();
   let newPetition = await Petition.findByIdAndUpdate(
@@ -39,7 +40,25 @@ itemsController.read = catchAsync(async (req, res, next) => {
   const items = await Item.find({}).populate("owner");
   return sendResponse(res, 200, true, { items }, null, "Get items sucessfully");
 });
-itemsController.update = catchAsync(async (req, res, next) => {});
+//change the status of item to complete
+itemsController.update = catchAsync(async (req, res, next) => {
+  const itemId = req.params.id;
+  const item = await Item.findByIdAndUpdate(
+    itemId,
+    {
+      status: "complete",
+    },
+    { new: true }
+  );
+  return sendResponse(
+    res,
+    200,
+    true,
+    { item },
+    null,
+    "Items status changed successfully"
+  );
+});
 itemsController.destroy = catchAsync(async (req, res, next) => {});
 
 module.exports = itemsController;

@@ -102,7 +102,6 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
   let items = await Promise.all(
     itemsId.map(async (itemId) => {
       const item = await Item.findById(itemId);
-      console.log(item);
       return item;
     })
   );

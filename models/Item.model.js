@@ -7,6 +7,12 @@ const itemSchema = Schema(
       ref: "Petition",
       type: Schema.ObjectId,
     },
+    status: {
+      type: String,
+      enum: {
+        values: ["pending", "complete"],
+      },
+    },
     quantity: Number,
     weight: Number,
     type: {
