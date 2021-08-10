@@ -53,19 +53,26 @@ foosController.seed = catchAsync(async (req, res) => {
     let pTimes = 50;
     for (let pIdx = 0; pIdx < pTimes; pIdx++) {
       let endLoc = null
+      let startLoc = null;
       const type = requestTypes[Math.floor(Math.random() * requestTypes.length)];
 
-      if (type === 'receive') {
+      if (type === "receive") {
         endLoc = {
+          lat: randomnum(bounds.n[0], bounds.s[0]),
+          lng: randomnum(bounds.w[1], bounds.e[1]),
+        };
+      } else if (type === "provide") {
+        startLoc = {
           lat: randomnum(bounds.n[0], bounds.s[0]),
           lng: randomnum(bounds.w[1], bounds.e[1]),
         };
       }
       const p = await Petition.create({
         owner,
-        status: "requested",
         type,
         endLoc,
+        startLoc,
+        status: "requested",
       });
       await p.save();
     }
