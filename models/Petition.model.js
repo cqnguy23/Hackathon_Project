@@ -38,10 +38,11 @@ const petitionSchema = Schema(
       country: String,
     },
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
+    items: [{ type: Schema.ObjectId, ref: "Item" }],
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Petition = mongoose.model("Petition", petitionSchema);

@@ -52,10 +52,11 @@ foosController.seed = catchAsync(async (req, res) => {
 
     let pTimes = 50;
     for (let pIdx = 0; pIdx < pTimes; pIdx++) {
-      let endLoc = null
-      const type = requestTypes[Math.floor(Math.random() * requestTypes.length)];
+      let endLoc = null;
+      const type =
+        requestTypes[Math.floor(Math.random() * requestTypes.length)];
 
-      if (type === 'receive') {
+      if (type === "receive") {
         endLoc = {
           lat: randomnum(bounds.n[0], bounds.s[0]),
           lng: randomnum(bounds.w[1], bounds.e[1]),
@@ -68,6 +69,7 @@ foosController.seed = catchAsync(async (req, res) => {
         endLoc,
       });
       await p.save();
+      //create some items if appropriate
     }
   }
 
