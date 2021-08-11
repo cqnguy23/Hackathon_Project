@@ -55,7 +55,7 @@ petitionsController.create = catchAsync(async (req, res, next) => {
 // - Allows a client to retrieve a list of petitions from the use.
 // - Often produces related data. The comments of a post for a example.
 petitionsController.read = catchAsync(async (req, res) => {
-  const petitions = await Petition.find({}).populate("owner");
+  const petitions = await Petition.find({}).populate("owner").populate('items');
   return utilsHelper.sendResponse(
     res,
     200,

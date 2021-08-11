@@ -31,9 +31,15 @@ const users = [
   { fName: "Tuan", lName: "Hoang" },
   { fName: "Ben", lName: "Dao" },
   { fName: "Peter", lName: "Nguyen" },
+  { fName: "Harry", lName: "Potter" },
+  { fName: "Albus", lName: "Dumbledore" },
+  { fName: "Salazar", lName: "Slytherin" },
+  { fName: "Godric", lName: "Gryffindor" },
+  { fName: "Gellert", lName: "Grindelwald" },
 ];
 
 const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
+const itemTypes = ['food', 'clothing', 'health', 'misc']
 
 const bounds = {
   n: [10.893521174902164, 106.67816465354217],
@@ -51,7 +57,7 @@ foosController.seed = catchAsync(async (req, res) => {
     let owner = await User.create({ firstName: u.fName, lastName: u.lName });
     await owner.save();
 
-    let pTimes = 10;
+    let pTimes = 20;
     for (let pIdx = 0; pIdx < pTimes; pIdx++) {
       let endLoc = null;
       let startLoc = null;
@@ -78,23 +84,43 @@ foosController.seed = catchAsync(async (req, res) => {
       });
       await p.save();
       //create some items if appropriate
-      const item = await Item.create({
-        petition: p,
-        weight: 3,
-        type: "food",
-      });
-      item = await Item.create({
-        petition: p,
-        weight: 5,
-        type: "clothing",
-      });
-      await item.save();
-      p.items.push(item);
-      await p.save();
+
+      if (type === "receive") {
+        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        let item = await Item.create({
+          weight: 3,
+          petition: p,
+          type: itemType,
+        });
+        itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        item = await Item.create({
+          weight: 5,
+          petition: p,
+          type: itemType,
+        });
+        await item.save();
+        p.items.push(item);
+        await p.save();
+      } else if (type === "provide") {
+        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        let item = await Item.create({
+          weight: 3,
+          petition: p,
+          type: itemType,
+        });
+        await p.save();
+      }
     }
   }
+  res.send({ foo: "Seeded" });
+});
 
-  res.send({ foo: "bar" });
+foosController.delete = catchAsync(async (req, res) => {
+  User.remove({})
+  Item.remove({})
+  Petition.remove({})
+  Participant.remove({})
+  res.send({ foo: "Deleted" });
 });
 
 module.exports = foosController;
