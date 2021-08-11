@@ -40,6 +40,7 @@ const users = [
 
 const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
 const itemTypes = ['food', 'clothing', 'health', 'misc']
+const genders = ['m', 'f']
 
 const bounds = {
   n: [10.893521174902164, 106.67816465354217],
@@ -52,9 +53,27 @@ function randomnum(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+const random = (n) => Math.floor(Math.random() * n);
+
+
+const isolatedDate = function () {
+  const now = new Date();
+  const thirtyDaysAgo = now.setDate(now.getDate() - random(16));
+  const thirtyDaysAgoDate = new Date(thirtyDaysAgo);
+  return thirtyDaysAgoDate;
+};
+
+
 foosController.seed = catchAsync(async (req, res) => {
   for (const u of users) {
-    let owner = await User.create({ firstName: u.fName, lastName: u.lName });
+    const gender =
+        genders[Math.floor(Math.random() * genders.length)];
+    let owner = await User.create({
+      firstName: u.fName,
+      lastName: u.lName,
+      gender,
+      isolatedDate: isolatedDate(),
+    });
     await owner.save();
 
     let pTimes = 10;
