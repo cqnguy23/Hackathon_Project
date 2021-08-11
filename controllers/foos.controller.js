@@ -57,7 +57,7 @@ foosController.seed = catchAsync(async (req, res) => {
     let owner = await User.create({ firstName: u.fName, lastName: u.lName });
     await owner.save();
 
-    let pTimes = 20;
+    let pTimes = 10;
     for (let pIdx = 0; pIdx < pTimes; pIdx++) {
       let endLoc = null;
       let startLoc = null;
