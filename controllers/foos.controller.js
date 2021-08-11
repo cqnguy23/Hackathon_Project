@@ -63,7 +63,6 @@ const isolatedDate = function () {
   return thirtyDaysAgoDate;
 };
 
-
 foosController.seed = catchAsync(async (req, res) => {
   for (const u of users) {
     const gender =
@@ -73,6 +72,9 @@ foosController.seed = catchAsync(async (req, res) => {
       lastName: u.lName,
       gender,
       isolatedDate: isolatedDate(),
+      imageUrl: `https://randomuser.me/api/portraits/thumb/${
+        gender === "m" ? "men" : "women"
+      }/${random(75)}.jpg`,
     });
     await owner.save();
 
@@ -102,6 +104,8 @@ foosController.seed = catchAsync(async (req, res) => {
         status: "requested",
       });
       await p.save();
+      p.createdAt = isolatedDate();
+      await p.save()
       //create some items if appropriate
 
       if (type === "receive") {

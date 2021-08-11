@@ -18,6 +18,7 @@ const userSchema = Schema(
       default: 18,
     },
     isolatedDate: { type: Date, default: Date.now },
+    imageUrl: String,
   },
   {
     timestamps: true,
