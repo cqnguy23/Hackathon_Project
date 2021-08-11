@@ -116,10 +116,19 @@ foosController.seed = catchAsync(async (req, res) => {
 });
 
 foosController.delete = catchAsync(async (req, res) => {
-  User.remove({})
-  Item.remove({})
-  Petition.remove({})
-  Participant.remove({})
+  await User.remove({}, function () {
+    console.log('Deleteing Users');
+  });
+  await Item.remove({}, function () {
+    console.log('Deleteing Items');
+  });
+  await Participant.remove({}, function () {
+    console.log("Deleteing Participant");
+  });
+  await Petition.remove({}, function () {
+    console.log("Deleteing Petition");
+  });
+
   res.send({ foo: "Deleted" });
 });
 
