@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 
 const itemSchema = Schema(
   {
+    name: String,
     petition: {
       ref: "Petition",
       type: Schema.ObjectId,

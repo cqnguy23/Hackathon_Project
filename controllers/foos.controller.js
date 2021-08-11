@@ -55,6 +55,12 @@ function randomnum(min, max) {
 
 const random = (n) => Math.floor(Math.random() * n);
 
+const itemNames = {
+  clothing: ['Shoes', 'Hat', 'Shirt'],
+  food: ['Noodles', 'Rice', 'Fruit', 'Veggies'],
+  health: ['Facemasks', 'Gloves', 'Gown'],
+  misc: ['Company', 'Companionship', 'Friendship', 'Someone to talk to', ''],
+};
 
 const isolatedDate = function () {
   const now = new Date();
@@ -117,6 +123,9 @@ foosController.seed = catchAsync(async (req, res) => {
         });
         itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         item = await Item.create({
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
           weight: 5,
           petition: p,
           type: itemType,
@@ -127,6 +136,9 @@ foosController.seed = catchAsync(async (req, res) => {
       } else if (type === "provide") {
         let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         let item = await Item.create({
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
           weight: 3,
           petition: p,
           type: itemType,
