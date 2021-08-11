@@ -1,6 +1,6 @@
 # Jaguar Hackathon Covid App
 
-Help people get & receive help
+Help people get & receive help. And also more stuff.
 
 ## Dependencies
 
