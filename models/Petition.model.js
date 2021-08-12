@@ -12,12 +12,14 @@ const petitionSchema = Schema(
       enum: {
         values: ["requested", "pending", "complete"],
       },
+      default: "requested",
     },
     type: {
       type: String,
       enum: {
         values: ["receive", "provide", "deliver"],
       },
+      default: "receive",
     },
     owner: {
       ref: "User",
@@ -46,6 +48,8 @@ const petitionSchema = Schema(
       bankNumber: Number,
       ownerName: String,
     },
+    description: String,
+    images: [{ imageUrl: String }],
   },
   {
     timestamps: true,
