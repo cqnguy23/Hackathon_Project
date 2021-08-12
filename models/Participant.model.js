@@ -13,7 +13,7 @@ const participantSchema = Schema({
   type: {
     type: String,
     enum: {
-      values: ["receiver", "provider", "driver", "loaner", "borrower"],
+      values: ["receiver", "provider", "driver"],
     },
   },
   endLoc: {
