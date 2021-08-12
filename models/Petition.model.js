@@ -16,7 +16,7 @@ const petitionSchema = Schema(
     type: {
       type: String,
       enum: {
-        values: ["receive", "provide", "deliver", "borrow"],
+        values: ["receive", "provide", "deliver"],
       },
     },
     owner: {
