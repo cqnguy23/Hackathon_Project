@@ -39,7 +39,6 @@ const users = [
 ];
 
 const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
-const itemTypes = ['food', 'clothing', 'health', 'misc']
 const genders = ['m', 'f']
 
 const bounds = {
@@ -55,11 +54,12 @@ function randomnum(min, max) {
 
 const random = (n) => Math.floor(Math.random() * n);
 
+const itemTypes = ["food", "clothing", "health", "misc"];
 const itemNames = {
   clothing: ['Shoes', 'Hat', 'Shirt'],
-  food: ['Noodles', 'Rice', 'Fruit', 'Veggies'],
-  health: ['Facemasks', 'Gloves', 'Gown'],
-  misc: ['Company', 'Companionship', 'Friendship', 'Someone to talk to', ''],
+  food: ['Instance Noodles', 'Rice', 'Fruit & Veggies', 'Various Vegetables'],
+  health: ['Face masks', 'Gloves', 'COVID Body Suit'],
+  misc: ['Company', 'Companionship', 'Friendship', 'Someone to talk to'],
 };
 
 const isolatedDate = function () {
@@ -73,14 +73,16 @@ foosController.seed = catchAsync(async (req, res) => {
   for (const u of users) {
     const gender =
         genders[Math.floor(Math.random() * genders.length)];
+    const sex = gender === "m" ? "men" : "women";
+    const id = random(75)
     let owner = await User.create({
-      firstName: u.fName,
-      lastName: u.lName,
       gender,
+      lastName: u.lName,
+      firstName: u.fName,
       isolatedDate: isolatedDate(),
-      imageUrl: `https://randomuser.me/api/portraits/thumb/${
-        gender === "m" ? "men" : "women"
-      }/${random(75)}.jpg`,
+      tbImgUrl: `https://randomuser.me/api/portraits/thumb/${sex}/${id}.jpg`,
+      mdImgURl: `https://randomuser.me/api/portraits/med/${sex}/${id}.jpg`,
+      lgImgUrl: `https://randomuser.me/api/portraits/${sex}/${id}.jpg`,
     });
     await owner.save();
 

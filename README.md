@@ -65,3 +65,11 @@ Item.schema = {
   petitionId: Number,
 }
 ```
+
+### Getting Up
+- .env needs
+  MONGODB_URI=''
+  PORT=''
+
+- Seed data with http://localhost:5000/api/foos/seed
+- Delete Data with http://localhost:5000/api/foos/delete
