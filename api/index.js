@@ -13,6 +13,10 @@ router.use("/petitions", petitionsApi);
 const participantsApi = require("./participants.api");
 router.use("/participants", participantsApi);
 
+/* Donation request endpoint */
+const donationRequestApi = require("./request.api");
+router.use("/donation_requests", donationRequestApi);
+
 const itemsApi = require("./items.api");
 router.use("/items", itemsApi);
 module.exports = router;
