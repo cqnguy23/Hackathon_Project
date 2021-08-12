@@ -40,6 +40,12 @@ const petitionSchema = Schema(
     },
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
     items: [{ type: Schema.ObjectId, ref: "Item" }],
+    bankInfo: {
+      bankName: String,
+      branchName: String,
+      bankNumber: Number,
+      ownerName: String,
+    },
   },
   {
     timestamps: true,
