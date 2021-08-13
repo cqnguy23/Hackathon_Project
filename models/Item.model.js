@@ -13,7 +13,7 @@ const itemSchema = Schema(
     type: {
       type: String,
       enum: {
-        values: ["clothing", "food", "health", 'misc'],
+        values: ["clothing", "food", "health", "misc"],
       },
     },
   },

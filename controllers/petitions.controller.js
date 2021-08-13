@@ -69,27 +69,48 @@ petitionsController.createPetitionWithItems = catchAsync(
       let petition = owner.petitions.find(
         (petition) => petition.status == "pending"
       );
+      let updatedPetition;
+
       items = await Promise.all(
         itemArray.map(async (item) => {
-          let tempItem = await Item.create({
-            petition,
+          let tempItem = await Item.find({
             name: item.name,
-            quantity: item.quantity,
-            type: item.type,
+            petition: petition,
           });
-          await tempItem.save();
-          return await tempItem;
+          if (tempItem.length !== 0) {
+            let updateItem = await Item.findByIdAndUpdate(
+              tempItem,
+              {
+                $inc: { quantity: item.quantity },
+              },
+              { new: true }
+            );
+
+            return updateItem;
+          } else {
+            let newItem = await Item.create({
+              petition,
+              name: item.name,
+              quantity: item.quantity,
+              type: item.type,
+            });
+            await Petition.findByIdAndUpdate(
+              petition,
+              { $push: { items: newItem } },
+              { new: true }
+            )
+              .populate("items")
+              .populate("owner");
+            return newItem;
+          }
         })
       );
-
-      //add to items if petition already exists
-      let updatedPetition = await Petition.findByIdAndUpdate(
-        petition,
-        { $push: { items: items } },
-        { new: true }
-      )
+      updatedPetition = await Petition.findById(petition)
         .populate("items")
         .populate("owner");
+
+      //add to items if petition already exists
+
       return utilsHelper.sendResponse(
         res,
         200,
@@ -108,14 +129,14 @@ petitionsController.createPetitionWithItems = catchAsync(
       petition.save();
       items = await Promise.all(
         itemArray.map(async (item) => {
-          let tempItem = await Item.create({
+          let newItem = await Item.create({
             petition,
             name: item.name,
             quantity: item.quantity,
             type: item.type,
           });
-          await tempItem.save();
-          return await tempItem;
+          await newItem.save();
+          return await newItem;
         })
       );
       petition = await Petition.findByIdAndUpdate(
@@ -217,14 +238,21 @@ petitionsController.getProviders = catchAsync(async (req, res, next) => {
           distance,
         },
         { new: true }
-      );
+      )
+        .populate("owner")
+        .populate("items");
       newPetition.save();
 
       return await newPetition;
     })
   );
   newPetitions.sort((a, b) => a.distance - b.distance);
+  let page = req.query.page;
+  let limit = req.query.limit;
 
+  if (page && limit) {
+    newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  }
   return utilsHelper.sendResponse(
     res,
     200,
@@ -259,14 +287,21 @@ petitionsController.getReceivers = catchAsync(async (req, res, next) => {
           distance,
         },
         { new: true }
-      );
+      )
+        .populate("owner")
+        .populate("items");
       newPetition.save();
 
       return await newPetition;
     })
   );
   newPetitions.sort((a, b) => a.distance - b.distance);
+  let page = req.query.page;
+  let limit = req.query.limit;
 
+  if (page && limit) {
+    newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  }
   return utilsHelper.sendResponse(
     res,
     200,
