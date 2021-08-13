@@ -117,7 +117,11 @@ petitionsController.createPetitionWithItems = catchAsync(async (req, res) => {
         return await tempItem;
       })
     );
-    petition = await Petition.findByIdAndUpdate(petition, items, { new: true })
+    petition = await Petition.findByIdAndUpdate(
+      petition,
+      { items },
+      { new: true }
+    )
       .populate("items")
       .populate("owner");
     petition.save();
