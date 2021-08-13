@@ -61,7 +61,7 @@ requestController.createRequest = async (req, res, next) => {
       receiveAmount,
       description,
       startLoc: {
-        city: startLoc.city,
+        city
       },
     });
     utilsHelper.sendResponse(
