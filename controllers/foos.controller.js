@@ -38,8 +38,8 @@ const users = [
   { fName: "Gellert", lName: "Grindelwald" },
 ];
 
-const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
-const genders = ['m', 'f']
+const requestTypes = ["receive", "provide", "deliver", "receive"];
+const genders = ["m", "f"];
 
 const bounds = {
   n: [10.893521174902164, 106.67816465354217],
@@ -56,10 +56,10 @@ const random = (n) => Math.floor(Math.random() * n);
 
 const itemTypes = ["food", "clothing", "health", "misc"];
 const itemNames = {
-  clothing: ['Shoes', 'Hat', 'Shirt'],
-  food: ['Instance Noodles', 'Rice', 'Fruit & Veggies', 'Various Vegetables'],
-  health: ['Face masks', 'Gloves', 'COVID Body Suit'],
-  misc: ['Company', 'Companionship', 'Friendship', 'Someone to talk to'],
+  clothing: ["Shoes", "Hat", "Shirt"],
+  food: ["Instance Noodles", "Rice", "Fruit & Veggies", "Various Vegetables"],
+  health: ["Face masks", "Gloves", "COVID Body Suit"],
+  misc: ["Company", "Companionship", "Friendship", "Someone to talk to"],
 };
 
 const isolatedDate = function () {
@@ -71,18 +71,14 @@ const isolatedDate = function () {
 
 foosController.seed = catchAsync(async (req, res) => {
   for (const u of users) {
-    const gender =
-        genders[Math.floor(Math.random() * genders.length)];
+    const gender = genders[Math.floor(Math.random() * genders.length)];
     const sex = gender === "m" ? "men" : "women";
-    const id = random(75)
+    const id = random(75);
     let owner = await User.create({
       gender,
       lastName: u.lName,
       firstName: u.fName,
       isolatedDate: isolatedDate(),
-      tbImgUrl: `https://randomuser.me/api/portraits/thumb/${sex}/${id}.jpg`,
-      mdImgURl: `https://randomuser.me/api/portraits/med/${sex}/${id}.jpg`,
-      lgImgUrl: `https://randomuser.me/api/portraits/${sex}/${id}.jpg`,
     });
     await owner.save();
 
@@ -113,40 +109,8 @@ foosController.seed = catchAsync(async (req, res) => {
       });
       await p.save();
       p.createdAt = isolatedDate();
-      await p.save()
+      await p.save();
       //create some items if appropriate
-
-      if (type === "receive") {
-        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-        let item = await Item.create({
-          weight: 3,
-          petition: p,
-          type: itemType,
-        });
-        itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-        item = await Item.create({
-          name: itemNames[itemType][
-            Math.floor(Math.random() * itemNames[itemType].length)
-          ],
-          weight: 5,
-          petition: p,
-          type: itemType,
-        });
-        await item.save();
-        p.items.push(item);
-        await p.save();
-      } else if (type === "provide") {
-        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-        let item = await Item.create({
-          name: itemNames[itemType][
-            Math.floor(Math.random() * itemNames[itemType].length)
-          ],
-          weight: 3,
-          petition: p,
-          type: itemType,
-        });
-        await p.save();
-      }
     }
   }
   res.send({ foo: "Seeded" });
@@ -154,10 +118,10 @@ foosController.seed = catchAsync(async (req, res) => {
 
 foosController.delete = catchAsync(async (req, res) => {
   await User.remove({}, function () {
-    console.log('Deleteing Users');
+    console.log("Deleteing Users");
   });
   await Item.remove({}, function () {
-    console.log('Deleteing Items');
+    console.log("Deleteing Items");
   });
   await Participant.remove({}, function () {
     console.log("Deleteing Participant");
