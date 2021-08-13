@@ -19,4 +19,8 @@ router.use("/donation_requests", donationRequestApi);
 
 const itemsApi = require("./items.api");
 router.use("/items", itemsApi);
+
+const authApi = require("./auth.api");
+router.use("/auth", authApi);
+
 module.exports = router;
