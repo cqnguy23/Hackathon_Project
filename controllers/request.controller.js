@@ -1,5 +1,5 @@
 const utilsHelper = require("../helpers/utils.helper");
-const Requests = require("../models/petition");
+const Requests = require("../models/Petition.model");
 const requestController = {};
 
 requestController.getAllRequests = async (req, res, next) => {
@@ -14,7 +14,7 @@ requestController.getAllRequests = async (req, res, next) => {
     const offset = limit * (page - 1);
 
     const requests = await Requests.find()
-      .populate("receiver")
+      .populate("owner")
       .skip(offset)
       .limit(limit)
       .sort({ createdAt: "desc" });
@@ -53,14 +53,16 @@ requestController.getSingleRequest = async (req, res, next) => {
 
 requestController.createRequest = async (req, res, next) => {
   try {
-    let { loanAmount, startLoc.city, bankInfo, description, images } = req.body;
+    let { receiveAmount, startLoc: { city }, bankInfo, description, images } = req.body;
 
     let request = await Requests.create({
-      loanAmount,
-      startLoc.city,
-      bankInfo,
-      description,
       images,
+      bankInfo,
+      receiveAmount,
+      description,
+      startLoc: {
+        city
+      },
     });
     utilsHelper.sendResponse(
       res,
