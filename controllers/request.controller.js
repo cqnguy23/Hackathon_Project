@@ -53,14 +53,16 @@ requestController.getSingleRequest = async (req, res, next) => {
 
 requestController.createRequest = async (req, res, next) => {
   try {
-    let { loanAmount, startLoc: { city }, bankInfo, description, images } = req.body;
+    let { receiveAmount, startLoc: { city }, bankInfo, description, images } = req.body;
 
     let request = await Requests.create({
-      loanAmount,
-      city: startLoc.city,
-      bankInfo,
-      description,
       images,
+      bankInfo,
+      receiveAmount,
+      description,
+      startLoc: {
+        city: startLoc.city,
+      },
     });
     utilsHelper.sendResponse(
       res,
