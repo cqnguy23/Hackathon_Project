@@ -9,6 +9,13 @@ const userSchema = Schema(
     lastName: String,
     phone: Number,
     password: String,
+    currentLocation: {
+      lat: Number,
+      lng: Number,
+      address: String,
+      city: String,
+      country: String,
+    },
     petitions: [{ type: Schema.ObjectId, ref: "Petition" }],
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
     gender: {
