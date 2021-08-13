@@ -11,7 +11,38 @@ const usersController = {};
 // CREATE a foo
 // - Allows a client to create a new foo.
 // - Should only allow admissable parameters for a new instance of a foo.
-usersController.create = catchAsync(async (req, res) => {});
+usersController.create = catchAsync(async (req, res) => {
+  let { name, image, address, phone, status, password } = req.body;
+  let user = await User.findOne({ phone });
+
+  if (user) return next(new Error("401 - User already exits"));
+
+  const salt = await bcrypt.genSalt(10);
+
+  if (!password) {
+    password = "name" + Math.floor(Math.random() * 10);
+  }
+  password = await bcrypt.hash(password, salt);
+
+  user = await User.create({
+    name,
+    address,
+    phone,
+    status,
+    password,
+  });
+
+  const accessToken = await user.generateToken();
+
+  return sendResponse(
+    res,
+    200,
+    true,
+    { user, accessToken },
+    null,
+    "Create User Successfully"
+  );
+});
 
 // READ a foo
 // - Allows a client to retrieve a list of foos.

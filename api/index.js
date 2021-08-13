@@ -15,4 +15,8 @@ router.use("/participants", participantsApi);
 
 const itemsApi = require("./items.api");
 router.use("/items", itemsApi);
+
+const authApi = require("./auth.api");
+router.use("/auth", authApi);
+
 module.exports = router;
