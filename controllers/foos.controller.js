@@ -38,7 +38,7 @@ const users = [
   { fName: "Gellert", lName: "Grindelwald" },
 ];
 
-const requestTypes = ["receive", "provide", "deliver", "receive"];
+const requestTypes = ["receive", "provide", "deliver"];
 const genders = ["m", "f"];
 
 const bounds = {
@@ -76,9 +76,16 @@ foosController.seed = catchAsync(async (req, res) => {
     const id = random(75);
     let owner = await User.create({
       gender,
+      currentLocation: {
+        lat: randomnum(bounds.n[0], bounds.s[0]),
+        lng: randomnum(bounds.w[1], bounds.e[1]),
+      },
       lastName: u.lName,
       firstName: u.fName,
       isolatedDate: isolatedDate(),
+      tbImgUrl: `https://randomuser.me/api/portraits/thumb/${sex}/${id}.jpg`,
+      mdImgURl: `https://randomuser.me/api/portraits/med/${sex}/${id}.jpg`,
+      lgImgUrl: `https://randomuser.me/api/portraits/${sex}/${id}.jpg`,
     });
     await owner.save();
 
@@ -111,6 +118,38 @@ foosController.seed = catchAsync(async (req, res) => {
       p.createdAt = isolatedDate();
       await p.save();
       //create some items if appropriate
+
+      if (type === "receive") {
+        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        let item = await Item.create({
+          weight: 3,
+          petition: p,
+          type: itemType,
+        });
+        itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        item = await Item.create({
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
+          weight: 5,
+          petition: p,
+          type: itemType,
+        });
+        await item.save();
+        p.items.push(item);
+        await p.save();
+      } else if (type === "provide") {
+        let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        let item = await Item.create({
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
+          weight: 3,
+          petition: p,
+          type: itemType,
+        });
+        await p.save();
+      }
     }
   }
   res.send({ foo: "Seeded" });

@@ -14,6 +14,8 @@ const petitionSchema = Schema(
       default: 0,
       type: Number,
     },
+    description: String,
+    distance: Number,
     type: {
       type: String,
       enum: {
@@ -42,7 +44,6 @@ const petitionSchema = Schema(
     description: String,
     images: [{ imageUrl: String }],
     items: [{ ref: "Item", type: Schema.ObjectId }],
-    items: [{ type: Schema.ObjectId, ref: "Item" }],
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
     bankInfo: {
       bankName: String,
@@ -53,7 +54,7 @@ const petitionSchema = Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Petition = mongoose.model("Petition", petitionSchema);
