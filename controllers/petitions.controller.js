@@ -102,7 +102,6 @@ petitionsController.createPetitionWithItems = catchAsync(
       //create new petition and add items
     } else {
       let petition = await Petition.create({
-        updatedPetition,
         type: petitionType,
         owner,
         status: "pending",
