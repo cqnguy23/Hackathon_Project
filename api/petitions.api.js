@@ -3,7 +3,7 @@ const router = express.Router();
 
 const petitionsController = require("../controllers/petitions.controller");
 
-router.post("/", petitionsController.create);
+router.post("/", petitionsController.createWithFund);
 router.get("/", petitionsController.read);
 router.get("/provider", petitionsController.getProviders);
 router.get("/receiver", petitionsController.getReceivers);

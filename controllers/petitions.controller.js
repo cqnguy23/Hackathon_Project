@@ -14,31 +14,33 @@ const petitionsController = {};
 // CREATE a petition
 // - Allows a client to create a new petition.
 // - Should only allow admissable parameters for a new instance of a petition.
-petitionsController.create = catchAsync(async (req, res, next) => {
-  let { userId, type, loanAmount } = req.body;
+petitionsController.createWithFund = catchAsync(async (req, res, next) => {
+  let { userId, type, fundAmount, bankInfo, description } = req.body;
   let petition;
-  if (!type || !userId) {
-    return next(new AppError(400, "Required fields are missing!"));
-  }
-  let owner = await User.findById(userId);
-  if (!owner) {
-    return next(new AppError(400, "Unable to locate owner"));
-  }
-  if (type == "borrow" || type == "provide") {
-    if (!loanAmount) {
-      return next(new AppError(400, "Required loan amount!"));
+  // if (!type || !userId) {
+  //   return next(new AppError(400, "Required fields are missing!"));
+  // }
+  // let owner = await User.findById(userId);
+  // if (!owner) {
+  //   return next(new AppError(400, "Unable to locate owner"));
+  // }
+  if (type == "receive" || type == "provide") {
+    if (!fundAmount) {
+      return next(new AppError(400, "Required fund amount!"));
     }
+    //fund flow
     petition = await Petition.create({
-      owner,
-      loanAmount,
+      owner: userId,
+      fundAmount,
       type,
-      status: "pending",
+      bankInfo,
+      description,
     });
   } else {
+    //driver ?
     petition = await Petition.create({
       owner,
       type,
-      status: "pending",
     });
   }
 

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Participant = require("./Participant.model");
+const User = require("./User.model");
 const Schema = mongoose.Schema;
 
 const petitionSchema = Schema(
@@ -58,6 +60,35 @@ const petitionSchema = Schema(
     timestamps: true,
   }
 );
+
+petitionSchema.statics.createParticipant = async function (petition, next) {
+  //receive petition that created, create participanting
+  const participant = await Participant.create({
+    owner: petition.owner,
+    type: "receiver",
+    petition: petition._id,
+  });
+  //update User info of the owner of this petition
+  let user = await User.findByIdAndUpdate(
+    petition.owner,
+    {
+      $push: { petitions: petition._id, participants: participant._id },
+    },
+    { new: true }
+  );
+  console.log(user);
+  //return partitcipant just create
+  return participant;
+};
+
+petitionSchema.pre("save", async function (next) {
+  //pre save, send this petition to the createPartitipant
+  const participant = await this.constructor.createParticipant(this);
+  //update this petition.participants after createPariticant
+  this.participants = [...this.participants, participant._id];
+
+  next();
+});
 
 const Petition = mongoose.model("Petition", petitionSchema);
 
