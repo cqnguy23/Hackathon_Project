@@ -3,7 +3,13 @@ const router = express.Router();
 
 const petitionsController = require("../controllers/petitions.controller");
 
-router.post("/", petitionsController.createWithFund);
+/**
+ * @route : /fund
+ * @description : Create Fund Request petition or Fund Donate to a FR petition
+ * @access: Login required
+ */
+router.post("/fund", petitionsController.createWithFund);
+
 router.get("/", petitionsController.read);
 router.get("/provider", petitionsController.getProviders);
 router.get("/receiver", petitionsController.getReceivers);

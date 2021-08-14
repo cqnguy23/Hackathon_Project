@@ -99,7 +99,7 @@ petitionSchema.pre("save", async function (next) {
 
   next();
 });
-petitionSchema.pre("findOneAndUpdate", async function (next) {
+petitionSchema.pre(/^findOneAnd/, async function (next) {
   this.doc = await this.findOne();
   if (this.doc.status == "completed")
     return next(new AppError(400, "Petition was completed", "Petition Error"));
@@ -109,7 +109,7 @@ petitionSchema.pre("findOneAndUpdate", async function (next) {
   next();
 });
 
-petitionSchema.post("findOneAndUpdate", async function () {
+petitionSchema.post(/^findOneAnd/, async function () {
   await this.doc.constructor.createParticipant(this.doc);
 });
 
