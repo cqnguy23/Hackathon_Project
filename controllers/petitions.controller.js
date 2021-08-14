@@ -215,11 +215,22 @@ petitionsController.read = catchAsync(async (req, res) => {
 });
 
 petitionsController.getProviders = catchAsync(async (req, res, next) => {
+  let { page, limit } = { ...req.query };
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const totalPetitions = await Petition.count({
+    type: "provide",
+  });
+
+  const totalPages = Math.ceil(totalPetitions / limit);
+  const offset = limit * (page - 1);
   const petitions = await Petition.find({
     type: "provide",
   })
     .populate("owner")
-    .populate("items");
+    .populate("items")
+    .skip(offset)
+    .limit(limit);
   let newPetitions = await Promise.all(
     petitions.map(async (petition) => {
       let distance = getDistance(
@@ -247,28 +258,40 @@ petitionsController.getProviders = catchAsync(async (req, res, next) => {
     })
   );
   newPetitions.sort((a, b) => a.distance - b.distance);
-  let page = req.query.page;
-  let limit = req.query.limit;
+  // let page = req.query.page;
+  // let limit = req.query.limit;
 
-  if (page && limit) {
-    newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
-  }
+  // if (page && limit) {
+  //   newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  // }
   return utilsHelper.sendResponse(
     res,
     200,
     true,
-    { newPetitions },
+    { newPetitions, totalPages },
     null,
     "Get provider petitions sucessfully"
   );
 });
 
 petitionsController.getReceivers = catchAsync(async (req, res, next) => {
+  let { page, limit } = { ...req.query };
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const totalPetitions = await Petition.count({
+    type: "receive",
+  });
+
+  const totalPages = Math.ceil(totalPetitions / limit);
+  const offset = limit * (page - 1);
   const petitions = await Petition.find({
     type: "receive",
   })
     .populate("owner")
-    .populate("items");
+    .populate("items")
+    .skip(offset)
+    .limit(limit);
+
   let newPetitions = await Promise.all(
     petitions.map(async (petition) => {
       let distance = getDistance(
@@ -281,6 +304,7 @@ petitionsController.getReceivers = catchAsync(async (req, res, next) => {
           longitude: petition.owner.currentLocation.lng,
         }
       );
+
       let newPetition = await Petition.findByIdAndUpdate(
         petition,
         {
@@ -290,23 +314,26 @@ petitionsController.getReceivers = catchAsync(async (req, res, next) => {
       )
         .populate("owner")
         .populate("items");
+
       newPetition.save();
 
       return await newPetition;
     })
   );
   newPetitions.sort((a, b) => a.distance - b.distance);
-  let page = req.query.page;
-  let limit = req.query.limit;
+  // let page = req.query.page;
+  // let limit = req.query.limit;
 
-  if (page && limit) {
-    newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
-  }
+  // if (page && limit) {
+  //   newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  // }
+
   return utilsHelper.sendResponse(
     res,
     200,
     true,
-    { newPetitions },
+    { newPetitions, totalPages },
+
     null,
     "Get receiver petitions sucessfully"
   );
