@@ -17,7 +17,7 @@ const petitionsController = {};
 // - Create a petiton will create a Participant, update the current User.petitions and User.participant (handle by Petition.middleware)
 petitionsController.createWithFund = catchAsync(async (req, res, next) => {
   let { type, fundAmount, bankInfo, description, targetId } = req.body;
-  let owner = req.userId;
+  let { userId } = req;
   let petition;
   if (!type || !userId || !fundAmount) {
     return next(new AppError(400, "Required fields are missing!"));
@@ -31,11 +31,10 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
   if (type == "provide") {
     if (!targetId)
       return next(new AppError(400, "Fund donation need target petition"));
-    targetPetition = await Petition.findOneAndUpdate(
-      { _id: targetId },
-      { actualAmount: fundAmount },
-      { new: true }
-    );
+    petition = await Petition.findById(targetId);
+    if (petition.status == "complete") {
+      return next(new AppError(400, "Fund donation to a completed petition"));
+    }
   }
 
   //fund request
@@ -46,7 +45,8 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
     type,
     bankInfo,
     description,
-    status: type == "provide" ? "completed" : "requested",
+    targetId: type == "provide" ? targetId : null,
+    status: type == "provide" ? "complete" : "requested",
   });
 
   return utilsHelper.sendResponse(

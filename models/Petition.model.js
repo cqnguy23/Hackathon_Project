@@ -58,15 +58,52 @@ const petitionSchema = Schema(
       branchName: String,
       bankNumber: Number,
     },
-    targetId: { type: Schema.ObjectId, ref: "Petit" },
+    targetId: { type: Schema.ObjectId, ref: "Petition" },
   },
   {
     timestamps: true,
   }
 );
-petitionSchema.statics.changeStatus = async function (petition) {
-  console.log("got here");
+
+//caculate action when ever a provide create
+
+petitionSchema.statics.calculateActual = async function (targetId) {
+  const adjustment = await this.aggregate([
+    { $match: { targetId } },
+    {
+      $group: {
+        _id: "$targetId",
+        actualAmount: {
+          $sum: { $cond: [{ $eq: ["$type", "provide"] }, "$actualAmount", 0] },
+        },
+      },
+    },
+  ]);
+
+  let pet = await Petition.findByIdAndUpdate(
+    targetId,
+    [
+      { $set: { actualAmount: adjustment[0].actualAmount } },
+      {
+        $set: {
+          status: {
+            $cond: [
+              { $lte: ["$startedAmount", adjustment[0].actualAmount] },
+              "complete",
+              "request",
+            ],
+          },
+        },
+      },
+    ],
+
+    {
+      new: true,
+    }
+  );
+  console.log("pet", pet);
 };
+
 petitionSchema.statics.createParticipant = async function (petition) {
   let type = petition.type;
   if (type == "receive") {
@@ -95,22 +132,20 @@ petitionSchema.statics.createParticipant = async function (petition) {
 petitionSchema.pre("save", async function (next) {
   console.log("target id", this.targetId);
   const participant = await this.constructor.createParticipant(this);
+  //this is calling the petition in creating
   this.participants = [...this.participants, participant._id];
-
-  next();
-});
-petitionSchema.pre(/^findOneAnd/, async function (next) {
-  this.doc = await this.findOne();
-  if (this.doc.status == "completed")
-    return next(new AppError(400, "Petition was completed", "Petition Error"));
-  this.doc.status = "completed";
-  await this.doc.updateOne({ status: "completed" }, { new: true });
-  console.log(this.doc.status);
+  //this is calling the targeted petition
+  if (this.targetId) {
+    await Petition.findOneAndUpdate(
+      { _id: this.targetId },
+      { $push: { participants: participant._id } }
+    );
+  }
   next();
 });
 
-petitionSchema.post(/^findOneAnd/, async function () {
-  await this.doc.constructor.createParticipant(this.doc);
+petitionSchema.post("save", async function () {
+  await this.constructor.calculateActual(this.targetId);
 });
 
 const Petition = mongoose.model("Petition", petitionSchema);
