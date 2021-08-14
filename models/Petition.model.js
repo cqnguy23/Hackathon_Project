@@ -10,7 +10,11 @@ const petitionSchema = Schema(
       },
       default: "requested",
     },
-    receiveAmount: {
+    startedAmount: {
+      default: 0,
+      type: Number,
+    },
+    actualAmount: {
       default: 0,
       type: Number,
     },
