@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { AppError } = require("../helpers/utils.helper");
 const Participant = require("./Participant.model");
 const User = require("./User.model");
 const Schema = mongoose.Schema;
@@ -25,11 +26,13 @@ const petitionSchema = Schema(
       enum: {
         values: ["receive", "provide", "deliver"],
       },
+      required: true,
       default: "receive",
     },
     owner: {
       ref: "User",
       type: Schema.ObjectId,
+      required: true,
     },
     startLoc: {
       lat: Number,
@@ -55,20 +58,29 @@ const petitionSchema = Schema(
       branchName: String,
       bankNumber: Number,
     },
+    targetId: { type: Schema.ObjectId, ref: "Petit" },
   },
   {
     timestamps: true,
   }
 );
+petitionSchema.statics.changeStatus = async function (petition) {
+  console.log("got here");
+};
+petitionSchema.statics.createParticipant = async function (petition) {
+  let type = petition.type;
+  if (type == "receive") {
+    type = "receiver";
+  } else if (type == "provide") {
+    type = "provider";
+  }
 
-petitionSchema.statics.createParticipant = async function (petition, next) {
-  //receive petition that created, create participanting
   const participant = await Participant.create({
     owner: petition.owner,
-    type: "receiver",
+    type,
     petition: petition._id,
   });
-  //update User info of the owner of this petition
+
   let user = await User.findByIdAndUpdate(
     petition.owner,
     {
@@ -76,18 +88,29 @@ petitionSchema.statics.createParticipant = async function (petition, next) {
     },
     { new: true }
   );
-  console.log(user);
-  //return partitcipant just create
+
   return participant;
 };
 
 petitionSchema.pre("save", async function (next) {
-  //pre save, send this petition to the createPartitipant
+  console.log("target id", this.targetId);
   const participant = await this.constructor.createParticipant(this);
-  //update this petition.participants after createPariticant
   this.participants = [...this.participants, participant._id];
 
   next();
+});
+petitionSchema.pre("findOneAndUpdate", async function (next) {
+  this.doc = await this.findOne();
+  if (this.doc.status == "completed")
+    return next(new AppError(400, "Petition was completed", "Petition Error"));
+  this.doc.status = "completed";
+  await this.doc.updateOne({ status: "completed" }, { new: true });
+  console.log(this.doc.status);
+  next();
+});
+
+petitionSchema.post("findOneAndUpdate", async function () {
+  await this.doc.constructor.createParticipant(this.doc);
 });
 
 const Petition = mongoose.model("Petition", petitionSchema);

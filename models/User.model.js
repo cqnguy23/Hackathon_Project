@@ -17,6 +17,7 @@ const userSchema = Schema(
       city: String,
       country: String,
     },
+
     petitions: [{ type: Schema.ObjectId, ref: "Petition" }],
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
     gender: {
