@@ -31,9 +31,6 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
   if (type == "provide") {
     if (!targetId)
       return next(new AppError(400, "Fund donation need target petition"));
-    // let targetPetition = await Petition.findById(targetId);
-    // if (!targetPetition.status == "completed")
-    //   return next(new AppError(400, "Petition has been completed"));
     targetPetition = await Petition.findOneAndUpdate(
       { _id: targetId },
       { actualAmount: fundAmount },
@@ -49,6 +46,7 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
     type,
     bankInfo,
     description,
+    status: type == "provide" ? "completed" : "requested",
   });
 
   return utilsHelper.sendResponse(
