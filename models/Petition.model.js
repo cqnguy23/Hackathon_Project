@@ -46,7 +46,6 @@ const petitionSchema = Schema(
     description: String,
     images: [{ imageUrl: String }],
     items: [{ ref: "Item", type: Schema.ObjectId }],
-    items: [{ type: Schema.ObjectId, ref: "Item" }],
     participants: [{ type: Schema.ObjectId, ref: "Participant" }],
     bankInfo: {
       bankName: String,
