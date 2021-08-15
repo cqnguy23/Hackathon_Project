@@ -183,6 +183,7 @@ petitionsController.read = catchAsync(async (req, res) => {
   const petitions = await Petition.find({})
     .populate("owner")
     .populate("items")
+    .populate("participants")
     .exec();
 
   let newPetitions = await Promise.all(
