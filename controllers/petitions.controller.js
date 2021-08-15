@@ -406,6 +406,73 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
     "Retrieve items sucessfully"
   );
 });
+petitionsController.getReceiveMatchingPetitions = catchAsync(
+  async (req, res, next) => {
+    let petitionId = req.params.id;
+
+    if (!petitionId) {
+      return next(new AppError(400, "Required fields are missing!"));
+    }
+    petition = await Petition.findById(petitionId).populate("items");
+    if (!petition) {
+      return next(new AppError(400, "Unable to locate petition"));
+    }
+    let matchedPetitions = [];
+    let tempPetitions = await Promise.all(
+      petition.items.map(async (item) => {
+        let query = await Item.find({ name: item.name }).populate("petition");
+        query = query.map((item) => item.petition._id.toString());
+        matchedPetitions = matchedPetitions.concat(query);
+        return query;
+      })
+    );
+
+    let uniq = [...new Set(matchedPetitions)];
+    console.log(uniq);
+    uniq = await Promise.all(
+      uniq.map(async (id) => {
+        return await Petition.findById(id).populate("items").populate("owner");
+      })
+    );
+    let result = uniq.filter((petition) => petition.type == "receive");
+    // result = await Promise.all(
+    //   result.map(async (petition) => {
+    //     let distance = getDistance(
+    //       {
+    //         latitude: petition.endLoc.lat,
+    //         longitude: petition.endLoc.lng,
+    //       },
+    //       {
+    //         latitude: petition.owner.currentLocation.lat,
+    //         longitude: petition.owner.currentLocation.lng,
+    //       }
+    //     );
+
+    //     let newPetition = await Petition.findByIdAndUpdate(
+    //       petition,
+    //       {
+    //         distance,
+    //       },
+    //       { new: true }
+    //     )
+    //       .populate("owner")
+    //       .populate("items");
+
+    //     return newPetition;
+    //   })
+    // );
+
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      { result },
+      null,
+      "Retrieve items sucessfully"
+    );
+    //fund donate
+  }
+);
 
 petitionsController.getMatching = catchAsync(async (req, res, next) => {
   let phone = req.params.phone;
@@ -451,6 +518,72 @@ petitionsController.getMatching = catchAsync(async (req, res, next) => {
   );
 });
 
+petitionsController.getProvideMatchingPetitions = catchAsync(
+  async (req, res, next) => {
+    let petitionId = req.params.id;
+
+    if (!petitionId) {
+      return next(new AppError(400, "Required fields are missing!"));
+    }
+    petition = await Petition.findById(petitionId).populate("items");
+    if (!petition) {
+      return next(new AppError(400, "Unable to locate petition"));
+    }
+    let matchedPetitions = [];
+    let tempPetitions = await Promise.all(
+      petition.items.map(async (item) => {
+        let query = await Item.find({ name: item.name }).populate("petition");
+        query = query.map((item) => item.petition._id.toString());
+        matchedPetitions = matchedPetitions.concat(query);
+        return query;
+      })
+    );
+
+    let uniq = [...new Set(matchedPetitions)];
+    console.log(uniq);
+    uniq = await Promise.all(
+      uniq.map(async (id) => {
+        return await Petition.findById(id).populate("items").populate("owner");
+      })
+    );
+    let result = uniq.filter((petition) => petition.type == "provide");
+    // result = await Promise.all(
+    //   result.map(async (petition) => {
+    //     let distance = getDistance(
+    //       {
+    //         latitude: petition.startLoc.lat,
+    //         longitude: petition.startLoc.lng,
+    //       },
+    //       {
+    //         latitude: petition.owner.currentLocation.lat,
+    //         longitude: petition.owner.currentLocation.lng,
+    //       }
+    //     );
+
+    //     let newPetition = await Petition.findByIdAndUpdate(
+    //       petition,
+    //       {
+    //         distance,
+    //       },
+    //       { new: true }
+    //     )
+    //       .populate("owner")
+    //       .populate("items");
+
+    //     return newPetition;
+    //   })
+    // );
+    return utilsHelper.sendResponse(
+      res,
+      200,
+      true,
+      { result },
+      null,
+      "Retrieve items sucessfully"
+    );
+    //fund donate
+  }
+);
 // DESTROY FOO
 // - Allows a client to destroy an instance of a petition.
 // - Should authenticate/authorize that the client can destroy the foo.
