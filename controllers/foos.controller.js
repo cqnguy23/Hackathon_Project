@@ -73,6 +73,10 @@ foosController.seed = catchAsync(async (req, res) => {
     const gender = genders[Math.floor(Math.random() * genders.length)];
     const sex = gender === "m" ? "men" : "women";
     const id = random(75);
+    let phone = "0984";
+    for (let i = 0; i < 7; i++) {
+      phone += `${Math.floor(Math.random() * 10)}`;
+    }
     let owner = await User.create({
       gender,
       currentLocation: {
@@ -81,6 +85,7 @@ foosController.seed = catchAsync(async (req, res) => {
       },
       lastName: u.lName,
       firstName: u.fName,
+      phone,
       isolatedDate: isolatedDate(),
       tbImgUrl: `https://randomuser.me/api/portraits/thumb/${sex}/${id}.jpg`,
       mdImgURl: `https://randomuser.me/api/portraits/med/${sex}/${id}.jpg`,
