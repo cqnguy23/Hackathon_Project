@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+//this need owner,petition,and type
 const participantSchema = Schema({
   owner: {
     ref: "User",
@@ -16,6 +16,7 @@ const participantSchema = Schema({
       values: ["receiver", "provider", "driver"],
     },
   },
+
   endLoc: {
     lat: Number,
     lng: Number,

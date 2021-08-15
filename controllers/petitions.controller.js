@@ -14,33 +14,40 @@ const petitionsController = {};
 // CREATE a petition
 // - Allows a client to create a new petition.
 // - Should only allow admissable parameters for a new instance of a petition.
-petitionsController.create = catchAsync(async (req, res, next) => {
-  let { userId, type, loanAmount } = req.body;
+// - Create a petiton will create a Participant, update the current User.petitions and User.participant (handle by Petition.middleware)
+petitionsController.createWithFund = catchAsync(async (req, res, next) => {
+  let { type, fundAmount, bankInfo, description, targetId } = req.body;
+  let { userId } = req;
   let petition;
-  if (!type || !userId) {
+  if (!type || !userId || !fundAmount) {
     return next(new AppError(400, "Required fields are missing!"));
   }
-  let owner = await User.findById(userId);
+  owner = await User.findById(userId);
   if (!owner) {
     return next(new AppError(400, "Unable to locate owner"));
   }
-  if (type == "borrow" || type == "provide") {
-    if (!loanAmount) {
-      return next(new AppError(400, "Required loan amount!"));
+
+  //fund donate
+  if (type == "provide") {
+    if (!targetId)
+      return next(new AppError(400, "Fund donation need target petition"));
+    petition = await Petition.findById(targetId);
+    if (petition.status == "complete") {
+      return next(new AppError(400, "Fund donation to a completed petition"));
     }
-    petition = await Petition.create({
-      owner,
-      loanAmount,
-      type,
-      status: "pending",
-    });
-  } else {
-    petition = await Petition.create({
-      owner,
-      type,
-      status: "pending",
-    });
   }
+
+  //fund request
+  petition = await Petition.create({
+    owner: userId,
+    startedAmount: fundAmount,
+    actualAmount: type == "provide" ? fundAmount : 0,
+    type,
+    bankInfo,
+    description,
+    targetId: type == "provide" ? targetId : null,
+    status: type == "provide" ? "complete" : "requested",
+  });
 
   return utilsHelper.sendResponse(
     res,
