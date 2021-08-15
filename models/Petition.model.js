@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { AppError } = require("../helpers/utils.helper");
+
 const Participant = require("./Participant.model");
 const User = require("./User.model");
 const Schema = mongoose.Schema;
@@ -65,8 +65,6 @@ const petitionSchema = Schema(
   }
 );
 
-//caculate action when ever a provide create
-
 petitionSchema.statics.calculateActual = async function (targetId) {
   const adjustment = await this.aggregate([
     { $match: { targetId } },
@@ -101,7 +99,6 @@ petitionSchema.statics.calculateActual = async function (targetId) {
       new: true,
     }
   );
-  console.log("pet", pet);
 };
 
 petitionSchema.statics.createParticipant = async function (petition) {
@@ -130,16 +127,14 @@ petitionSchema.statics.createParticipant = async function (petition) {
 };
 
 petitionSchema.pre("save", async function (next) {
-  console.log("target id", this.targetId);
   const participant = await this.constructor.createParticipant(this);
   //this is calling the petition in creating
   this.participants = [...this.participants, participant._id];
   //this is calling the targeted petition
   if (this.targetId) {
-    await Petition.findOneAndUpdate(
-      { _id: this.targetId },
-      { $push: { participants: participant._id } }
-    );
+    await Petition.findByIdAndUpdate(this.targetId, {
+      $push: { participants: participant._id },
+    });
   }
   next();
 });
