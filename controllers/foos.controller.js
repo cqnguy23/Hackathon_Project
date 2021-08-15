@@ -38,7 +38,7 @@ const users = [
   { fName: "Gellert", lName: "Grindelwald" },
 ];
 
-const requestTypes = ["receive", "provide", "driver"];
+const requestTypes = ["receive", "provide", "deliver"];
 const genders = ["m", "f"];
 
 const bounds = {
