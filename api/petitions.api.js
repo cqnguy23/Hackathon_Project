@@ -2,8 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const petitionsController = require("../controllers/petitions.controller");
+const { loginRequired } = require("../middlewares/auth.middleware");
 
-router.post("/", petitionsController.create);
+router.post("/fund", loginRequired, petitionsController.createWithFund);
+
 router.get("/", petitionsController.read);
 router.get("/provider", petitionsController.getProviders);
 router.get("/receiver", petitionsController.getReceivers);

@@ -9,7 +9,7 @@ const authController = {};
 
 authController.login = catchAsync(async (req, res, next) => {
   const { phone, password } = req.body;
-  console.log(req.body);
+
   const user = await User.findOne({ phone });
   if (!user)
     return next(new AppError(300, "User is not existed", "Login Error"));

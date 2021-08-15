@@ -14,33 +14,47 @@ const petitionsController = {};
 // CREATE a petition
 // - Allows a client to create a new petition.
 // - Should only allow admissable parameters for a new instance of a petition.
-petitionsController.create = catchAsync(async (req, res, next) => {
-  let { userId, type, loanAmount } = req.body;
+// - Create a petiton will create a Participant, update the current User.petitions and User.participant (handle by Petition.middleware)
+petitionsController.createWithFund = catchAsync(async (req, res, next) => {
+  let { type, fundAmount, bankInfo, description, targetId } = req.body;
+  let { userId } = req;
   let petition;
-  if (!type || !userId) {
+  if (!type || !userId || !fundAmount) {
     return next(new AppError(400, "Required fields are missing!"));
   }
   let owner = await User.findById(userId);
   if (!owner) {
     return next(new AppError(400, "Unable to locate owner"));
   }
-  if (type == "borrow" || type == "provide") {
-    if (!loanAmount) {
-      return next(new AppError(400, "Required loan amount!"));
+
+  //fund donate
+  if (type == "provide") {
+    if (!targetId)
+      return next(new AppError(400, "Fund donation need target petition"));
+    petition = await Petition.findOne({ _id: targetId });
+
+    if (petition.owner == owner._id) {
+      return next(new AppError(400, "Can not donate to self"));
+    } else if (petition.status == "complete") {
+      return next(new AppError(400, "Fund donation to a completed petition"));
+    } else if (petition.startedAmount - petition.actualAmount < fundAmount) {
+      return next(
+        new AppError(400, "Fund donation is more than remaining request amount")
+      );
     }
-    petition = await Petition.create({
-      owner,
-      loanAmount,
-      type,
-      status: "pending",
-    });
-  } else {
-    petition = await Petition.create({
-      owner,
-      type,
-      status: "pending",
-    });
   }
+
+  //fund request
+  petition = await Petition.create({
+    owner: userId,
+    startedAmount: fundAmount,
+    actualAmount: type == "provide" ? fundAmount : 0,
+    type,
+    bankInfo,
+    description,
+    targetId: type == "provide" ? targetId : null,
+    status: type == "provide" ? "complete" : "requested",
+  });
 
   return utilsHelper.sendResponse(
     res,
@@ -166,7 +180,9 @@ petitionsController.createPetitionWithItems = catchAsync(
 // - Allows a client to retrieve a list of petitions from the use.
 // - Often produces related data. The comments of a post for a example.
 petitionsController.read = catchAsync(async (req, res) => {
-  const petitions = await Petition.find({}).populate("owner").populate("items");
+  const petitions = await Petition.find().populate("owner").populate("items");
+
+  console.log("this", petitions);
 
   let newPetitions = await Promise.all(
     petitions.map(async (petition) => {
