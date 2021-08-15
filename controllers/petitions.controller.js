@@ -68,19 +68,20 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
 
 petitionsController.createPetitionWithItems = catchAsync(
   async (req, res, next) => {
-    let { userId, itemArray, petitionType, description } = req.body;
-    if (!petitionType || !userId) {
+    let { phone, firstName, itemArray, petitionType, description } = req.body;
+    if (!petitionType) {
       return next(new AppError(400, "Required fields are missing!"));
     }
     let items;
-    let owner = await User.findById(userId)
+    let owner = await User.find({ phone })
       .populate("petitions")
       .populate("owner");
     if (!owner) {
-      return next(new AppError(400, "Unable to locate owner"));
+      // return next(new AppError(400, "Unable to locate owner"));
+      owner = await User.create({ phone, firstName });
     }
-    if (owner.petitions.length != 0) {
-      let petition = owner.petitions.find(
+    if (owner.petitions?.length != 0) {
+      let petition = owner.petitions?.find(
         (petition) => petition.status == "pending"
       );
       let updatedPetition;
@@ -472,6 +473,50 @@ petitionsController.getReceiveMatchingPetitions = catchAsync(
     //fund donate
   }
 );
+
+petitionsController.getMatching = catchAsync(async (req, res, next) => {
+  let phone = req.params.phone;
+  let user = await User.findOne({ phone });
+
+  if (!user) {
+    return next(new AppError(401, "User not found!"));
+  }
+  const petitions = await Petition.find({
+    type: "receive",
+  })
+    .populate("owner")
+    .populate("items")
+    .lean();
+
+  let newPetitions = await Promise.all(
+    petitions.map(async (petition) => {
+      let distance = getDistance(
+        {
+          latitude: user.currentLocation.lat,
+          longitude: user.currentLocation.lng,
+        },
+        {
+          latitude: petition.owner.currentLocation.lat,
+          longitude: petition.owner.currentLocation.lng,
+        }
+      );
+      petition.distance = distance;
+
+      return petition;
+    })
+  );
+  newPetitions.sort((a, b) => a.distance - b.distance);
+
+  newPetitions = newPetitions.slice(0, 20);
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { newPetitions },
+    null,
+    "Get matching receiver"
+  );
+});
 
 petitionsController.getProvideMatchingPetitions = catchAsync(
   async (req, res, next) => {

@@ -13,6 +13,8 @@ router.put("/:id", petitionsController.update);
 router.delete("/:id", petitionsController.destroy);
 router.get("/:id", petitionsController.getItems);
 router.post("/new", petitionsController.createPetitionWithItems);
+router.get("/matching/:phone", petitionsController.getMatching);
+
 router.get(
   "/matching/receiver/:id",
   petitionsController.getReceiveMatchingPetitions

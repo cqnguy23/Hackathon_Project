@@ -10,7 +10,6 @@ const {
   sendResponse,
 } = require("../helpers/utils.helper");
 const Item = require("../models/Item.model");
-
 const foosController = {};
 
 foosController.create = catchAsync(async (req, res) => {});
@@ -74,6 +73,10 @@ foosController.seed = catchAsync(async (req, res) => {
     const gender = genders[Math.floor(Math.random() * genders.length)];
     const sex = gender === "m" ? "men" : "women";
     const id = random(75);
+    let phone = "0984";
+    for (let i = 0; i < 7; i++) {
+      phone += `${Math.floor(Math.random() * 10)}`;
+    }
     let owner = await User.create({
       gender,
       currentLocation: {
@@ -82,6 +85,7 @@ foosController.seed = catchAsync(async (req, res) => {
       },
       lastName: u.lName,
       firstName: u.fName,
+      phone,
       isolatedDate: isolatedDate(),
       tbImgUrl: `https://randomuser.me/api/portraits/thumb/${sex}/${id}.jpg`,
       mdImgURl: `https://randomuser.me/api/portraits/med/${sex}/${id}.jpg`,
@@ -128,9 +132,10 @@ foosController.seed = catchAsync(async (req, res) => {
         });
         itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         item = await Item.create({
-          name: itemNames[itemType][
-            Math.floor(Math.random() * itemNames[itemType].length)
-          ],
+          name:
+            itemNames[itemType][
+              Math.floor(Math.random() * itemNames[itemType].length)
+            ],
           weight: 5,
           petition: p,
           type: itemType,
@@ -141,9 +146,10 @@ foosController.seed = catchAsync(async (req, res) => {
       } else if (type === "provide") {
         let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         let item = await Item.create({
-          name: itemNames[itemType][
-            Math.floor(Math.random() * itemNames[itemType].length)
-          ],
+          name:
+            itemNames[itemType][
+              Math.floor(Math.random() * itemNames[itemType].length)
+            ],
           weight: 3,
           petition: p,
           type: itemType,
