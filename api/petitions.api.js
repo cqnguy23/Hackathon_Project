@@ -18,5 +18,12 @@ router.put("/:id", petitionsController.update);
 router.delete("/:id", petitionsController.destroy);
 router.get("/:id", petitionsController.getItems);
 router.post("/new", petitionsController.createPetitionWithItems);
-
+router.get(
+  "/matching/receiver/:id",
+  petitionsController.getReceiveMatchingPetitions
+);
+router.get(
+  "/matching/provider/:id",
+  petitionsController.getProvideMatchingPetitions
+);
 module.exports = router;
