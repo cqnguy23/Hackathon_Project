@@ -16,8 +16,21 @@ const petitionsController = {};
 // - Should only allow admissable parameters for a new instance of a petition.
 // - Create a petiton will create a Participant, update the current User.petitions and User.participant (handle by Petition.middleware)
 petitionsController.createWithFund = catchAsync(async (req, res, next) => {
-  let { type, fundAmount, bankInfo, description, targetId } = req.body;
+  let { type, fundAmount, bankInfo, description, startLoc, targetId } =
+    req.body;
   let { userId } = req;
+
+  if (!startLoc)
+    return next(
+      new AppError(400, "Required start location fields are missing!")
+    );
+  let { lat, lng, city, country, address } = startLoc;
+  if (!lat || !lng || !city || !country || !address) {
+    return next(
+      new AppError(400, "Required start location fields are missing!")
+    );
+  }
+
   let petition;
   if (!type || !userId || !fundAmount) {
     return next(new AppError(400, "Required fields are missing!"));
@@ -52,6 +65,7 @@ petitionsController.createWithFund = catchAsync(async (req, res, next) => {
     type,
     bankInfo,
     description,
+    startLoc,
     targetId: type == "provide" ? targetId : null,
     status: type == "provide" ? "complete" : "requested",
   });
