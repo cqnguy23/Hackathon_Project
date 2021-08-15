@@ -37,7 +37,7 @@ const users = [
   { fName: "Gellert", lName: "Grindelwald" },
 ];
 
-const requestTypes = ["receive", "provide", "deliver", "borrow", "receive"];
+const requestTypes = ["receive", "provide", "deliver"];
 const genders = ["m", "f"];
 
 const bounds = {
@@ -75,6 +75,10 @@ foosController.seed = catchAsync(async (req, res) => {
     const id = random(75);
     let owner = await User.create({
       gender,
+      currentLocation: {
+        lat: randomnum(bounds.n[0], bounds.s[0]),
+        lng: randomnum(bounds.w[1], bounds.e[1]),
+      },
       lastName: u.lName,
       firstName: u.fName,
       isolatedDate: isolatedDate(),

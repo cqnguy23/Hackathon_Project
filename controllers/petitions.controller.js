@@ -8,38 +8,53 @@ const {
 const utilsHelper = require("../helpers/utils.helper");
 const User = require("../models/User.model");
 const Item = require("../models/Item.model");
+const { getDistance } = require("geolib");
 
 const petitionsController = {};
 // CREATE a petition
 // - Allows a client to create a new petition.
 // - Should only allow admissable parameters for a new instance of a petition.
-petitionsController.create = catchAsync(async (req, res, next) => {
-  let { userId, type, loanAmount } = req.body;
+// - Create a petiton will create a Participant, update the current User.petitions and User.participant (handle by Petition.middleware)
+petitionsController.createWithFund = catchAsync(async (req, res, next) => {
+  let { type, fundAmount, bankInfo, description, targetId } = req.body;
+  let { userId } = req;
   let petition;
-  if (!type || !userId) {
+  if (!type || !userId || !fundAmount) {
     return next(new AppError(400, "Required fields are missing!"));
   }
   let owner = await User.findById(userId);
   if (!owner) {
     return next(new AppError(400, "Unable to locate owner"));
   }
-  if (type == "borrow" || type == "provide") {
-    if (!loanAmount) {
-      return next(new AppError(400, "Required loan amount!"));
+
+  //fund donate
+  if (type == "provide") {
+    if (!targetId)
+      return next(new AppError(400, "Fund donation need target petition"));
+    petition = await Petition.findOne({ _id: targetId });
+
+    if (petition.owner == owner._id) {
+      return next(new AppError(400, "Can not donate to self"));
+    } else if (petition.status == "complete") {
+      return next(new AppError(400, "Fund donation to a completed petition"));
+    } else if (petition.startedAmount - petition.actualAmount < fundAmount) {
+      return next(
+        new AppError(400, "Fund donation is more than remaining request amount")
+      );
     }
-    petition = await Petition.create({
-      owner,
-      loanAmount,
-      type,
-      status: "pending",
-    });
-  } else {
-    petition = await Petition.create({
-      owner,
-      type,
-      status: "pending",
-    });
   }
+
+  //fund request
+  petition = await Petition.create({
+    owner: userId,
+    startedAmount: fundAmount,
+    actualAmount: type == "provide" ? fundAmount : 0,
+    type,
+    bankInfo,
+    description,
+    targetId: type == "provide" ? targetId : null,
+    status: type == "provide" ? "complete" : "requested",
+  });
 
   return utilsHelper.sendResponse(
     res,
@@ -51,21 +66,294 @@ petitionsController.create = catchAsync(async (req, res, next) => {
   );
 });
 
+petitionsController.createPetitionWithItems = catchAsync(
+  async (req, res, next) => {
+    let { phone, firstName, itemArray, petitionType, description } = req.body;
+    if (!petitionType) {
+      return next(new AppError(400, "Required fields are missing!"));
+    }
+    let items;
+    let owner = await User.find({ phone })
+      .populate("petitions")
+      .populate("owner");
+    if (!owner) {
+      return next(new AppError(400, "Unable to locate owner"));
+    }
+    if (owner.petitions.length != 0) {
+      let petition = owner.petitions.find(
+        (petition) => petition.status == "pending"
+      );
+      let updatedPetition;
+
+      items = await Promise.all(
+        itemArray.map(async (item) => {
+          let tempItem = await Item.find({
+            name: item.name,
+            petition: petition,
+          });
+          if (tempItem.length !== 0) {
+            let updateItem = await Item.findByIdAndUpdate(
+              tempItem,
+              {
+                $inc: { quantity: item.quantity },
+              },
+              { new: true }
+            );
+
+            return updateItem;
+          } else {
+            let newItem = await Item.create({
+              petition,
+              name: item.name,
+              quantity: item.quantity,
+              type: item.type,
+            });
+            await Petition.findByIdAndUpdate(
+              petition,
+              { $push: { items: newItem } },
+              { new: true }
+            )
+              .populate("items")
+              .populate("owner");
+            return newItem;
+          }
+        })
+      );
+      updatedPetition = await Petition.findById(petition)
+        .populate("items")
+        .populate("owner");
+
+      //add to items if petition already exists
+
+      return utilsHelper.sendResponse(
+        res,
+        200,
+        true,
+        { updatedPetition },
+        null,
+        "Petition updated sucessfully"
+      );
+      //create new petition and add items
+    } else {
+      let petition = await Petition.create({
+        type: petitionType,
+        owner,
+        status: "pending",
+      });
+      petition.save();
+      items = await Promise.all(
+        itemArray.map(async (item) => {
+          let newItem = await Item.create({
+            petition,
+            name: item.name,
+            quantity: item.quantity,
+            type: item.type,
+          });
+          await newItem.save();
+          return await newItem;
+        })
+      );
+      petition = await Petition.findByIdAndUpdate(
+        petition,
+        { items },
+        { new: true }
+      )
+        .populate("items")
+        .populate("owner");
+      petition.save();
+      let user = await User.findByIdAndUpdate(owner, {
+        $push: { petitions: petition },
+      });
+      user.save();
+      return utilsHelper.sendResponse(
+        res,
+        200,
+        true,
+        { petition },
+        null,
+        "Petition created sucessfully"
+      );
+    }
+  }
+);
 // READ a petition
 // - Allows a client to retrieve a list of petitions from the use.
 // - Often produces related data. The comments of a post for a example.
 petitionsController.read = catchAsync(async (req, res) => {
-  const petitions = await Petition.find({}).populate("owner").populate('items');
+  const petitions = await Petition.find().populate("owner").populate("items");
+
+  console.log("this", petitions);
+
+  let newPetitions = await Promise.all(
+    petitions.map(async (petition) => {
+      let distance;
+      if (petition.type == "provide") {
+        distance = getDistance(
+          {
+            latitude: petition.startLoc?.lat,
+            longitude: petition.startLoc?.lng,
+          },
+          {
+            latitude: petition.owner.currentLocation.lat,
+            longitude: petition.owner.currentLocation.lng,
+          }
+        );
+      } else if (petition.type == "receive") {
+        distance = getDistance(
+          { latitude: petition.endLoc.lat, longitude: petition.endLoc.lng },
+          {
+            latitude: petition.owner.currentLocation.lat,
+            longitude: petition.owner.currentLocation.lng,
+          }
+        );
+      }
+      let newPetition = await Petition.findByIdAndUpdate(
+        petition,
+        {
+          distance,
+        },
+        { new: true }
+      );
+      newPetition.save();
+
+      return await newPetition;
+    })
+  );
+  newPetitions.sort((a, b) => a.distance - b.distance);
   return utilsHelper.sendResponse(
     res,
     200,
     true,
-    { petitions },
+    { newPetitions },
     null,
     "Get petitions sucessfully"
   );
 });
 
+petitionsController.getProviders = catchAsync(async (req, res, next) => {
+  let { page, limit } = { ...req.query };
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const totalPetitions = await Petition.count({
+    type: "provide",
+  });
+
+  const totalPages = Math.ceil(totalPetitions / limit);
+  const offset = limit * (page - 1);
+  const petitions = await Petition.find({
+    type: "provide",
+  })
+    .populate("owner")
+    .populate("items")
+    .skip(offset)
+    .limit(limit);
+  let newPetitions = await Promise.all(
+    petitions.map(async (petition) => {
+      let distance = getDistance(
+        {
+          latitude: petition.startLoc.lat,
+          longitude: petition.startLoc.lng,
+        },
+        {
+          latitude: petition.owner.currentLocation.lat,
+          longitude: petition.owner.currentLocation.lng,
+        }
+      );
+      let newPetition = await Petition.findByIdAndUpdate(
+        petition,
+        {
+          distance,
+        },
+        { new: true }
+      )
+        .populate("owner")
+        .populate("items");
+      newPetition.save();
+
+      return await newPetition;
+    })
+  );
+  newPetitions.sort((a, b) => a.distance - b.distance);
+  // let page = req.query.page;
+  // let limit = req.query.limit;
+
+  // if (page && limit) {
+  //   newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  // }
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { newPetitions, totalPages },
+    null,
+    "Get provider petitions sucessfully"
+  );
+});
+
+petitionsController.getReceivers = catchAsync(async (req, res, next) => {
+  let { page, limit } = { ...req.query };
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const totalPetitions = await Petition.count({
+    type: "receive",
+  });
+
+  const totalPages = Math.ceil(totalPetitions / limit);
+  const offset = limit * (page - 1);
+  const petitions = await Petition.find({
+    type: "receive",
+  })
+    .populate("owner")
+    .populate("items")
+    .skip(offset)
+    .limit(limit);
+
+  let newPetitions = await Promise.all(
+    petitions.map(async (petition) => {
+      let distance = getDistance(
+        {
+          latitude: petition.endLoc.lat,
+          longitude: petition.endLoc.lng,
+        },
+        {
+          latitude: petition.owner.currentLocation.lat,
+          longitude: petition.owner.currentLocation.lng,
+        }
+      );
+
+      let newPetition = await Petition.findByIdAndUpdate(
+        petition,
+        {
+          distance,
+        },
+        { new: true }
+      )
+        .populate("owner")
+        .populate("items");
+
+      newPetition.save();
+
+      return await newPetition;
+    })
+  );
+  newPetitions.sort((a, b) => a.distance - b.distance);
+  // let page = req.query.page;
+  // let limit = req.query.limit;
+
+  // if (page && limit) {
+  //   newPetitions = newPetitions.slice((page - 1) * limit, page * limit);
+  // }
+
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { newPetitions, totalPages },
+
+    null,
+    "Get receiver petitions sucessfully"
+  );
+});
 // UPDATE FOO
 // - Allows a client to update a previous instance of a petition.
 // - Should only allow admissable parameters to be updated by the client.
@@ -102,7 +390,6 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
   let items = await Promise.all(
     itemsId.map(async (itemId) => {
       const item = await Item.findById(itemId);
-      console.log(item);
       return item;
     })
   );

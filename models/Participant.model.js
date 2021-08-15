@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+//this need owner,petition,and type
 const participantSchema = Schema({
   owner: {
     ref: "User",
@@ -13,9 +13,10 @@ const participantSchema = Schema({
   type: {
     type: String,
     enum: {
-      values: ["receiver", "provider", "driver", "loaner", "borrower"],
+      values: ["receiver", "provider", "deliver"],
     },
   },
+
   endLoc: {
     lat: Number,
     lng: Number,
