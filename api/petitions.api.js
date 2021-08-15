@@ -4,11 +4,6 @@ const router = express.Router();
 const petitionsController = require("../controllers/petitions.controller");
 const { loginRequired } = require("../middlewares/auth.middleware");
 
-/**
- * @route : /fund
- * @description : Create Fund Request petition or Fund Donate to a FR petition
- * @access: Login required
- */
 router.post("/fund", loginRequired, petitionsController.createWithFund);
 
 router.get("/", petitionsController.read);
