@@ -194,9 +194,21 @@ petitionsController.createPetitionWithItems = catchAsync(
 // - Allows a client to retrieve a list of petitions from the use.
 // - Often produces related data. The comments of a post for a example.
 petitionsController.read = catchAsync(async (req, res) => {
-  const petitions = await Petition.find().populate("owner").populate("items");
+  let { page, limit } = { ...req.query };
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const totalPetitions = await Petition.count({
+    type: "provide",
+  });
 
-  console.log("this", petitions);
+  const totalPages = Math.ceil(totalPetitions / limit);
+  const offset = limit * (page - 1);
+
+  const petitions = await Petition.find()
+    .populate("owner")
+    .populate("items")
+    .skip(offset)
+    .limit(limit);
 
   let newPetitions = await Promise.all(
     petitions.map(async (petition) => {
@@ -227,7 +239,7 @@ petitionsController.read = catchAsync(async (req, res) => {
           distance,
         },
         { new: true }
-      );
+      ).populate("owner");
       newPetition.save();
 
       return await newPetition;
@@ -238,7 +250,7 @@ petitionsController.read = catchAsync(async (req, res) => {
     res,
     200,
     true,
-    { newPetitions },
+    { newPetitions, totalPages },
     null,
     "Get petitions sucessfully"
   );
