@@ -80,13 +80,14 @@ petitionsController.createPetitionWithItems = catchAsync(
     if (!petitionType) {
       return next(new AppError(400, "Required fields are missing!"));
     }
+    let newPetitions;
 
     let items;
     let owner = await User.findOne({ phone })
       .populate("petitions")
       .populate("owner")
       .lean();
-    if (owner.length === 0) {
+    if (!owner) {
       // return next(new AppError(400, "Unable to locate owner"));
       owner = await User.create({
         phone,
@@ -100,8 +101,6 @@ petitionsController.createPetitionWithItems = catchAsync(
     );
 
     if (petition) {
-      let updatedPetition;
-
       items = await Promise.all(
         itemArray.map(async (item) => {
           let tempItem = await Item.find({
@@ -136,17 +135,41 @@ petitionsController.createPetitionWithItems = catchAsync(
           }
         })
       );
-      updatedPetition = await Petition.findById(petition)
+      newPetition = await Petition.findById(petition)
         .populate("items")
         .populate("owner");
 
       //add to items if petition already exists
+      const petitions = await Petition.find({
+        type: "receive",
+      })
+        .populate("owner")
+        .populate("items")
+        .lean();
+      let newPetitions = await Promise.all(
+        petitions.map(async (petition) => {
+          let distance = getDistance(
+            {
+              latitude: newPetition.owner.currentLocation.lat,
+              longitude: newPetition.owner.currentLocation.lng,
+            },
+            {
+              latitude: petition.owner.currentLocation.lat,
+              longitude: petition.owner.currentLocation.lng,
+            }
+          );
+          petition.distance = distance;
+
+          return petition;
+        })
+      );
+      newPetitions.sort((a, b) => a.distance - b.distance);
 
       return utilsHelper.sendResponse(
         res,
         200,
         true,
-        { updatedPetition },
+        { newPetitions },
         null,
         "Petition updated sucessfully"
       );
@@ -446,6 +469,27 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
     "Retrieve items sucessfully"
   );
 });
+
+petitionsController.getSinglePetition = catchAsync(async (req, res, next) => {
+  let petitionId = req.params.id;
+  let petition = await Petition.findById(petitionId)
+    .populate("items")
+    .populate("owner");
+
+  if (!petition) {
+    return next(new AppError(401, "Petition not found!"));
+  }
+
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { petition },
+    null,
+    "Get single petition sucessfully"
+  );
+});
+
 petitionsController.getReceiveMatchingPetitions = catchAsync(
   async (req, res, next) => {
     let petitionId = req.params.id;
