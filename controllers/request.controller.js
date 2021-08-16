@@ -14,7 +14,7 @@ requestController.getAllRequests = async (req, res, next) => {
     const offset = limit * (page - 1);
 
     const requests = await Requests.find()
-      .populate("receiver")
+      .populate("owner")
       .skip(offset)
       .limit(limit)
       .sort({ createdAt: "desc" });
@@ -53,14 +53,14 @@ requestController.getSingleRequest = async (req, res, next) => {
 
 requestController.createRequest = async (req, res, next) => {
   try {
-    let { loanAmount, startLoc, bankInfo, description, images } = req.body;
-
+    let { receiveAmount, loanAmount, startLoc, bankInfo, description, images } = req.body;
     let request = await Requests.create({
-      loanAmount,
-      startLoc,
-      bankInfo,
-      description,
       images,
+      bankInfo,
+      loanAmount,
+      receiveAmount,
+      description,
+      startLoc,
     });
     utilsHelper.sendResponse(
       res,
