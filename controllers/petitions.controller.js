@@ -240,7 +240,7 @@ petitionsController.read = catchAsync(async (req, res) => {
         },
         { new: true }
       ).populate("owner");
-      newPetition.save();
+      // newPetition.save();
 
       return await newPetition;
     })
