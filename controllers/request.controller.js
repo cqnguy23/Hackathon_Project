@@ -1,5 +1,5 @@
 const utilsHelper = require("../helpers/utils.helper");
-const Requests = require("../models/petition");
+const Requests = require("../models/Petition.model");
 const requestController = {};
 
 requestController.getAllRequests = async (req, res, next) => {
@@ -53,11 +53,11 @@ requestController.getSingleRequest = async (req, res, next) => {
 
 requestController.createRequest = async (req, res, next) => {
   try {
-    let { loanAmount, startLoc.city, bankInfo, description, images } = req.body;
+    let { loanAmount, startLoc, bankInfo, description, images } = req.body;
 
     let request = await Requests.create({
       loanAmount,
-      startLoc.city,
+      startLoc,
       bankInfo,
       description,
       images,
