@@ -17,7 +17,7 @@ const petitionSchema = Schema(
     type: {
       type: String,
       enum: {
-        values: ["receive", "provide", "deliver"],
+        values: ["receive", "provide", "deliver", "borrow"],
       },
       default: "receive",
     },
@@ -53,7 +53,7 @@ const petitionSchema = Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const Petition = mongoose.model("Petition", petitionSchema);
