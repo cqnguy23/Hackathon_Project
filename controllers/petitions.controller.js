@@ -82,9 +82,10 @@ petitionsController.createPetitionWithItems = catchAsync(
     }
 
     let items;
-    let owner = await User.find({ phone })
+    let owner = await User.findOne({ phone })
       .populate("petitions")
-      .populate("owner");
+      .populate("owner")
+      .lean();
     if (owner.length === 0) {
       // return next(new AppError(400, "Unable to locate owner"));
       owner = await User.create({
@@ -93,50 +94,51 @@ petitionsController.createPetitionWithItems = catchAsync(
         currentLocation: { lat, lng },
       });
     }
-    console.log(owner);
-    if (owner.petitions?.length != 0) {
-      let petition = owner.petitions?.find(
-        (petition) => petition.status == "pending"
-      );
+
+    let petition = owner.petitions?.find(
+      (petition) => petition.status == "pending"
+    );
+
+    if (petition) {
       let updatedPetition;
 
-      // items = await Promise.all(
-      //   itemArray.map(async (item) => {
-      //     let tempItem = await Item.find({
-      //       name: item.name,
-      //       petition: petition,
-      //     });
-      //     if (tempItem.length !== 0) {
-      //       let updateItem = await Item.findByIdAndUpdate(
-      //         tempItem,
-      //         {
-      //           $inc: { quantity: item.quantity },
-      //         },
-      //         { new: true }
-      //       );
+      items = await Promise.all(
+        itemArray.map(async (item) => {
+          let tempItem = await Item.find({
+            name: item.name,
+            petition: petition,
+          });
+          if (tempItem.length !== 0) {
+            let updateItem = await Item.findByIdAndUpdate(
+              tempItem,
+              {
+                $inc: { quantity: item.quantity },
+              },
+              { new: true }
+            );
 
-      //       return updateItem;
-      //     } else {
-      //       let newItem = await Item.create({
-      //         petition,
-      //         name: item.name,
-      //         quantity: item.quantity,
-      //         type: item.type,
-      //       });
-      //       await Petition.findByIdAndUpdate(
-      //         petition,
-      //         { $push: { items: newItem } },
-      //         { new: true }
-      //       )
-      //         .populate("items")
-      //         .populate("owner");
-      //       return newItem;
-      //     }
-      //   })
-      // );
-      // updatedPetition = await Petition.findById(petition)
-      //   .populate("items")
-      //   .populate("owner");
+            return updateItem;
+          } else {
+            let newItem = await Item.create({
+              petition,
+              name: item.name,
+              quantity: item.quantity,
+              type: item.type,
+            });
+            await Petition.findByIdAndUpdate(
+              petition,
+              { $push: { items: newItem } },
+              { new: true }
+            )
+              .populate("items")
+              .populate("owner");
+            return newItem;
+          }
+        })
+      );
+      updatedPetition = await Petition.findById(petition)
+        .populate("items")
+        .populate("owner");
 
       //add to items if petition already exists
 
