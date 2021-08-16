@@ -80,7 +80,7 @@ petitionsController.createPetitionWithItems = catchAsync(
     if (!petitionType) {
       return next(new AppError(400, "Required fields are missing!"));
     }
-    console.log(lat, lng);
+
     let items;
     let owner = await User.find({ phone })
       .populate("petitions")
