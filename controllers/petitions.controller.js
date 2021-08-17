@@ -80,12 +80,14 @@ petitionsController.createPetitionWithItems = catchAsync(
     if (!petitionType) {
       return next(new AppError(400, "Required fields are missing!"));
     }
+    let newPetitions;
 
     let items;
-    let owner = await User.find({ phone })
+    let owner = await User.findOne({ phone })
       .populate("petitions")
-      .populate("owner");
-    if (owner.length === 0) {
+      .populate("owner")
+      .lean();
+    if (!owner) {
       // return next(new AppError(400, "Unable to locate owner"));
       owner = await User.create({
         phone,
@@ -93,58 +95,81 @@ petitionsController.createPetitionWithItems = catchAsync(
         currentLocation: { lat, lng },
       });
     }
-    console.log(owner);
-    if (owner.petitions?.length != 0) {
-      let petition = owner.petitions?.find(
-        (petition) => petition.status == "pending"
+
+    let petition = owner.petitions?.find(
+      (petition) => petition.status == "pending"
+    );
+
+    if (petition) {
+      items = await Promise.all(
+        itemArray.map(async (item) => {
+          let tempItem = await Item.find({
+            name: item.name,
+            petition: petition,
+          });
+          if (tempItem.length !== 0) {
+            let updateItem = await Item.findByIdAndUpdate(
+              tempItem,
+              {
+                $inc: { quantity: item.quantity },
+              },
+              { new: true }
+            );
+
+            return updateItem;
+          } else {
+            let newItem = await Item.create({
+              petition,
+              name: item.name,
+              quantity: item.quantity,
+              type: item.type,
+            });
+            await Petition.findByIdAndUpdate(
+              petition,
+              { $push: { items: newItem } },
+              { new: true }
+            )
+              .populate("items")
+              .populate("owner");
+            return newItem;
+          }
+        })
       );
-      let updatedPetition;
-
-      // items = await Promise.all(
-      //   itemArray.map(async (item) => {
-      //     let tempItem = await Item.find({
-      //       name: item.name,
-      //       petition: petition,
-      //     });
-      //     if (tempItem.length !== 0) {
-      //       let updateItem = await Item.findByIdAndUpdate(
-      //         tempItem,
-      //         {
-      //           $inc: { quantity: item.quantity },
-      //         },
-      //         { new: true }
-      //       );
-
-      //       return updateItem;
-      //     } else {
-      //       let newItem = await Item.create({
-      //         petition,
-      //         name: item.name,
-      //         quantity: item.quantity,
-      //         type: item.type,
-      //       });
-      //       await Petition.findByIdAndUpdate(
-      //         petition,
-      //         { $push: { items: newItem } },
-      //         { new: true }
-      //       )
-      //         .populate("items")
-      //         .populate("owner");
-      //       return newItem;
-      //     }
-      //   })
-      // );
-      // updatedPetition = await Petition.findById(petition)
-      //   .populate("items")
-      //   .populate("owner");
+      newPetition = await Petition.findById(petition)
+        .populate("items")
+        .populate("owner");
 
       //add to items if petition already exists
+      const petitions = await Petition.find({
+        type: "receive",
+      })
+        .populate("owner")
+        .populate("items")
+        .lean();
+      let newPetitions = await Promise.all(
+        petitions.map(async (petition) => {
+          let distance = getDistance(
+            {
+              latitude: newPetition.owner.currentLocation.lat,
+              longitude: newPetition.owner.currentLocation.lng,
+            },
+            {
+              latitude: petition.owner.currentLocation.lat,
+              longitude: petition.owner.currentLocation.lng,
+            }
+          );
+          petition.distance = distance;
+
+          return petition;
+        })
+      );
+      newPetitions.sort((a, b) => a.distance - b.distance);
 
       return utilsHelper.sendResponse(
         res,
         200,
         true,
-        { updatedPetition },
+        { newPetitions },
         null,
         "Petition updated sucessfully"
       );
@@ -444,6 +469,27 @@ petitionsController.getItems = catchAsync(async (req, res, next) => {
     "Retrieve items sucessfully"
   );
 });
+
+petitionsController.getSinglePetition = catchAsync(async (req, res, next) => {
+  let petitionId = req.params.id;
+  let petition = await Petition.findById(petitionId)
+    .populate("items")
+    .populate("owner");
+
+  if (!petition) {
+    return next(new AppError(401, "Petition not found!"));
+  }
+
+  return utilsHelper.sendResponse(
+    res,
+    200,
+    true,
+    { petition },
+    null,
+    "Get single petition sucessfully"
+  );
+});
+
 petitionsController.getReceiveMatchingPetitions = catchAsync(
   async (req, res, next) => {
     let petitionId = req.params.id;
