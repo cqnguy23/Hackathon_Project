@@ -3,6 +3,7 @@ const User = require("../models/User.model");
 const Petition = require("../models/Petition.model");
 const Participant = require("../models/Participant.model");
 // const Items = require("../models/Items.model");
+const Blog = require("../models/Blog.model");
 
 const {
   AppError,
@@ -68,6 +69,48 @@ const isolatedDate = function () {
   return thirtyDaysAgoDate;
 };
 
+const foos = [
+  "foo",
+  "bar",
+  "spam",
+  "ham",
+  "bam",
+  "can",
+  "land",
+  "alpha",
+  "bravo",
+  "charlie",
+  "delta",
+  "echo",
+  "foxtrot",
+  "golf",
+  "hotel",
+  "igloo",
+  "juliet",
+  "kilo",
+  "lima",
+  "mike",
+  "november",
+  "oscar",
+  "papa",
+  "quebec",
+  "romeo",
+  "sierra",
+  "tango",
+  "uniform",
+  "victor",
+  "whiskey",
+  "xray",
+  "yankee",
+  "zulu",
+];
+
+foosController.blogs = catchAsync(async (req, res) => {
+  for (const foo of foos) {
+    const blog = Blog.create({ title: foo, body: foo, author: foo, slug: foo });
+  }
+});
+
 foosController.seed = catchAsync(async (req, res) => {
   for (const u of users) {
     const gender = genders[Math.floor(Math.random() * genders.length)];
@@ -132,10 +175,9 @@ foosController.seed = catchAsync(async (req, res) => {
         });
         itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         item = await Item.create({
-          name:
-            itemNames[itemType][
-              Math.floor(Math.random() * itemNames[itemType].length)
-            ],
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
           weight: 5,
           petition: p,
           type: itemType,
@@ -146,10 +188,9 @@ foosController.seed = catchAsync(async (req, res) => {
       } else if (type === "provide") {
         let itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
         let item = await Item.create({
-          name:
-            itemNames[itemType][
-              Math.floor(Math.random() * itemNames[itemType].length)
-            ],
+          name: itemNames[itemType][
+            Math.floor(Math.random() * itemNames[itemType].length)
+          ],
           weight: 3,
           petition: p,
           type: itemType,
@@ -173,6 +214,9 @@ foosController.delete = catchAsync(async (req, res) => {
   });
   await Petition.remove({}, function () {
     console.log("Deleteing Petition");
+  });
+  await Blog.remove({}, function () {
+    console.log("Deleteing Blogs");
   });
 
   res.send({ foo: "Deleted" });
