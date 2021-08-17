@@ -24,7 +24,7 @@ const petitionSchema = Schema(
     type: {
       type: String,
       enum: {
-        values: ["receive", "provide", "deliver"],
+        values: ["receive", "provide", "deliver", "borrow"],
       },
       required: true,
       default: "receive",
@@ -62,7 +62,7 @@ const petitionSchema = Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 petitionSchema.statics.calculateActual = async function (targetId) {
